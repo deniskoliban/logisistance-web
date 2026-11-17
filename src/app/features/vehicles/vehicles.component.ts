@@ -1,19 +1,45 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { forkJoin, firstValueFrom } from 'rxjs';
 
-import { apiErrorMessage } from '../../core/api-error';
-import { FleetService } from '../../core/fleet.service';
-import { BodyType, OptionItem, Vehicle, VehicleInput, VehicleOptions, VehicleType } from '../../core/models';
+import { FleetService } from '../../core/fleet/fleet.service';
+import { OptionItem, Vehicle, VehicleInput, VehicleOptions } from '../../core/models';
+import { apiErrorMessage } from '../../core/utils/api-error.util';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData,
+} from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-vehicles',
-  imports: [ReactiveFormsModule],
-  templateUrl: './vehicles.html',
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatExpansionModule,
+    MatProgressBarModule,
+  ],
+  templateUrl: './vehicles.component.html',
 })
-export class Vehicles implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly fleet = inject(FleetService);
+export class VehiclesComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly fleetService = inject(FleetService);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly vehicles = signal<Vehicle[]>([]);
   protected readonly vehicleTypes = signal<OptionItem[]>([]);
@@ -22,14 +48,13 @@ export class Vehicles implements OnInit {
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly notice = signal<string | null>(null);
   protected readonly editingId = signal<number | null>(null);
 
-  protected readonly form = this.fb.nonNullable.group({
+  protected readonly form = this.formBuilder.nonNullable.group({
     label: ['', [Validators.required, Validators.maxLength(80)]],
     plate: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
-    vehicle_type: ['articulated_truck' as VehicleType, [Validators.required]],
-    body_type: ['curtain_side' as BodyType, [Validators.required]],
+    vehicle_type: ['articulated_truck', [Validators.required]],
+    body_type: ['curtain_side', [Validators.required]],
     payload_kg: [null as number | null, [Validators.required, Validators.min(1), Validators.max(60000)]],
     volume_m3: [null as number | null, [Validators.min(0)]],
     max_range_km: [null as number | null, [Validators.min(0)]],
@@ -67,18 +92,20 @@ export class Vehicles implements OnInit {
     }
 
     const payload = this.buildPayload();
+    const editingId = this.editingId();
+
     this.saving.set(true);
     this.error.set(null);
-    this.notice.set(null);
 
-    const editingId = this.editingId();
     const request$ =
-      editingId === null ? this.fleet.create(payload) : this.fleet.update(editingId, payload);
+      editingId === null
+        ? this.fleetService.create(payload)
+        : this.fleetService.update(editingId, payload);
 
     request$.subscribe({
       next: () => {
         this.saving.set(false);
-        this.notice.set(editingId === null ? 'Vehicle added to your fleet.' : 'Vehicle updated.');
+        this.notify(editingId === null ? 'Vehicle added to your fleet.' : 'Vehicle updated.');
         this.resetForm();
         this.reload();
       },
@@ -91,7 +118,6 @@ export class Vehicles implements OnInit {
 
   protected edit(vehicle: Vehicle): void {
     this.editingId.set(vehicle.id);
-    this.notice.set(null);
     this.error.set(null);
     this.form.patchValue({
       label: vehicle.label,
@@ -114,23 +140,40 @@ export class Vehicles implements OnInit {
     this.resetForm();
   }
 
-  protected remove(vehicle: Vehicle): void {
-    if (!confirm(`Remove ${vehicle.label} (${vehicle.plate}) from your fleet?`)) {
+  protected async remove(vehicle: Vehicle): Promise<void> {
+    const confirmed = await firstValueFrom(
+      this.dialog
+        .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+          data: {
+            title: 'Remove vehicle',
+            message: `Remove ${vehicle.label} (${vehicle.plate}) from your fleet?`,
+            confirmLabel: 'Remove',
+          },
+        })
+        .afterClosed(),
+    );
+
+    if (!confirmed) {
       return;
     }
 
     this.error.set(null);
-    this.notice.set(null);
-    this.fleet.remove(vehicle.id).subscribe({
+    this.fleetService.remove(vehicle.id).subscribe({
       next: () => {
-        this.notice.set('Vehicle removed.');
+        this.notify('Vehicle removed.');
         if (this.editingId() === vehicle.id) {
           this.resetForm();
         }
         this.reload();
       },
-      error: (error: unknown) => this.error.set(apiErrorMessage(error, 'Could not remove the vehicle.')),
+      error: (error: unknown) => {
+        this.error.set(apiErrorMessage(error, 'Could not remove the vehicle.'));
+      },
     });
+  }
+
+  private notify(message: string): void {
+    this.snackBar.open(message, 'Dismiss', { duration: 3000 });
   }
 
   private buildPayload(): VehicleInput {
@@ -138,8 +181,8 @@ export class Vehicles implements OnInit {
     return {
       label: value.label.trim(),
       plate: value.plate.trim().toUpperCase(),
-      vehicle_type: value.vehicle_type,
-      body_type: value.body_type,
+      vehicle_type: value.vehicle_type as VehicleInput['vehicle_type'],
+      body_type: value.body_type as VehicleInput['body_type'],
       payload_kg: Number(value.payload_kg),
       volume_m3: value.volume_m3 === null ? null : Number(value.volume_m3),
       max_range_km: value.max_range_km === null ? null : Number(value.max_range_km),
@@ -174,8 +217,8 @@ export class Vehicles implements OnInit {
   private reload(): void {
     this.loading.set(true);
     forkJoin({
-      list: this.fleet.list(),
-      options: this.fleet.vehicleOptions(),
+      list: this.fleetService.list(),
+      options: this.fleetService.vehicleOptions(),
     }).subscribe({
       next: ({ list, options }: { list: { items: Vehicle[] }; options: VehicleOptions }) => {
         this.vehicles.set(list.items);

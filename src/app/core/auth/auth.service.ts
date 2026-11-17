@@ -9,15 +9,11 @@ import {
   LoginPayload,
   ProfileUpdate,
   RegisterPayload,
+  StoredSession,
   User,
-} from './models';
+} from '../models';
 
 const STORAGE_KEY = 'efla.session';
-
-interface StoredSession {
-  token: string;
-  user: User;
-}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -69,17 +65,20 @@ export class AuthService {
   private store(response: AuthResponse): void {
     this._token.set(response.access_token);
     this._user.set(response.user);
-    const session: StoredSession = { token: response.access_token, user: response.user };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    this.persist(response.access_token, response.user);
   }
 
   private patchUser(user: User): void {
     this._user.set(user);
     const token = this._token();
     if (token) {
-      const session: StoredSession = { token, user };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      this.persist(token, user);
     }
+  }
+
+  private persist(token: string, user: User): void {
+    const session: StoredSession = { token, user };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
   }
 
   private restore(): void {

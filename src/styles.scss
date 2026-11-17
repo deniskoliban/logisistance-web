@@ -1,0 +1,281 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: light dark;
+  height: 100%;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+}
+
+html.light-theme {
+  color-scheme: light;
+}
+
+html.dark-theme {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  /* one step away from the card surface so outlined cards read as cards in both themes */
+  background: var(--mat-sys-surface-container-low);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- app shell ---------- */
+
+.app-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 8px;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-title-small);
+  font-weight: 700;
+}
+
+.brand-name {
+  font: var(--mat-sys-title-medium);
+  letter-spacing: -0.01em;
+}
+
+.app-nav {
+  display: flex;
+  gap: 4px;
+  margin-left: 16px;
+}
+
+.active-link {
+  background: var(--mat-sys-secondary-container);
+  color: var(--mat-sys-on-secondary-container);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.user-name {
+  font: var(--mat-sys-body-medium);
+  color: var(--mat-sys-on-surface-variant);
+  margin: 0 4px;
+}
+
+.app-main {
+  padding: 24px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+/* ---------- page layout ---------- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-head h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.page-head p {
+  margin: 4px 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.identity-sub {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.form-error {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-error-container);
+  color: var(--mat-sys-on-error-container);
+  font: var(--mat-sys-body-medium);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* ---------- auth screens ---------- */
+
+.auth-shell {
+  min-height: calc(100vh - 140px);
+  display: grid;
+  place-items: center;
+  padding: 24px 8px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-card-wide {
+  max-width: 640px;
+}
+
+.auth-alt {
+  margin-top: 16px;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+/* ---------- fleet ---------- */
+
+.vehicle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vehicle-card mat-card-actions {
+  gap: 4px;
+}
+
+.plate {
+  font-family: 'Roboto Mono', 'Consolas', monospace;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.fact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 14px 16px;
+  margin: 0;
+}
+
+.fact dt {
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fact dd {
+  margin: 2px 0 0;
+  font: var(--mat-sys-body-medium);
+}
+
+.empty-state {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.dimensions-subhead {
+  margin: 16px 0 4px;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .app-main {
+    padding: 16px;
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .user-name {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}

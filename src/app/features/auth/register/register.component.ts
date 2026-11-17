@@ -1,28 +1,45 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
 
-import { apiErrorMessage } from '../../core/api-error';
-import { AuthService } from '../../core/auth.service';
-import { FleetService } from '../../core/fleet.service';
-import { CountryOption } from '../../core/models';
+import { AuthService } from '../../../core/auth/auth.service';
+import { FleetService } from '../../../core/fleet/fleet.service';
+import { CountryOption } from '../../../core/models';
+import { apiErrorMessage } from '../../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-register',
-  imports: [ReactiveFormsModule, RouterLink],
-  templateUrl: './register.html',
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatProgressBarModule,
+  ],
+  templateUrl: './register.component.html',
 })
-export class Register {
-  private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
-  private readonly fleet = inject(FleetService);
+export class RegisterComponent {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly fleetService = inject(FleetService);
   private readonly router = inject(Router);
 
   protected readonly countries = signal<CountryOption[]>([]);
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected readonly form = this.fb.nonNullable.group({
+  protected readonly form = this.formBuilder.nonNullable.group({
     full_name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
@@ -32,7 +49,7 @@ export class Register {
   });
 
   constructor() {
-    this.fleet.countries().subscribe({
+    this.fleetService.countries().subscribe({
       next: (countries) => this.countries.set(countries),
       error: () => this.error.set('Could not load the country list. Is the API running?'),
     });
@@ -48,7 +65,7 @@ export class Register {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.auth
+    this.authService
       .register({
         full_name: value.full_name,
         email: value.email,

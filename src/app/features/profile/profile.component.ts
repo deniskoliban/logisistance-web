@@ -1,28 +1,45 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
-import { apiErrorMessage } from '../../core/api-error';
-import { AuthService } from '../../core/auth.service';
-import { FleetService } from '../../core/fleet.service';
+import { AuthService } from '../../core/auth/auth.service';
+import { FleetService } from '../../core/fleet/fleet.service';
 import { CountryOption } from '../../core/models';
+import { apiErrorMessage } from '../../core/utils/api-error.util';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule],
-  templateUrl: './profile.html',
+  imports: [
+    ReactiveFormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatListModule,
+  ],
+  templateUrl: './profile.component.html',
 })
-export class Profile implements OnInit {
-  private readonly fb = inject(FormBuilder);
-  private readonly auth = inject(AuthService);
-  private readonly fleet = inject(FleetService);
+export class ProfileComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly fleetService = inject(FleetService);
+  private readonly snackBar = inject(MatSnackBar);
 
-  protected readonly user = this.auth.user;
+  protected readonly user = this.authService.user;
   protected readonly countries = signal<CountryOption[]>([]);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly saved = signal(false);
 
-  protected readonly form = this.fb.nonNullable.group({
+  protected readonly form = this.formBuilder.nonNullable.group({
     full_name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
     age: [null as number | null, [Validators.required, Validators.min(18), Validators.max(100)]],
     country: ['', [Validators.required]],
@@ -30,16 +47,17 @@ export class Profile implements OnInit {
   });
 
   ngOnInit(): void {
-    const user = this.user();
-    if (user) {
+    const current = this.user();
+    if (current) {
       this.form.patchValue({
-        full_name: user.full_name,
-        age: user.age,
-        country: user.country,
-        city: user.city,
+        full_name: current.full_name,
+        age: current.age,
+        country: current.country,
+        city: current.city,
       });
     }
-    this.fleet.countries().subscribe({
+
+    this.fleetService.countries().subscribe({
       next: (countries) => this.countries.set(countries),
       error: () => this.error.set('Could not load the country list.'),
     });
@@ -66,9 +84,8 @@ export class Profile implements OnInit {
     const value = this.form.getRawValue();
     this.saving.set(true);
     this.error.set(null);
-    this.saved.set(false);
 
-    this.auth
+    this.authService
       .updateProfile({
         full_name: value.full_name,
         age: Number(value.age),
@@ -78,7 +95,7 @@ export class Profile implements OnInit {
       .subscribe({
         next: () => {
           this.saving.set(false);
-          this.saved.set(true);
+          this.snackBar.open('Profile saved.', 'Dismiss', { duration: 3000 });
         },
         error: (error: unknown) => {
           this.saving.set(false);

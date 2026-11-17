@@ -1,0 +1,207 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <h1>My fleet</h1>
+      <p>Payload and cargo dimensions decide which loads actually fit your vehicle.</p>
+    </div>
+    <span class="identity-sub">
+      {{ vehicles().length }} vehicle{{ vehicles().length === 1 ? '' : 's' }}
+    </span>
+  </header>
+
+  @if (error(); as message) {
+    <p class="form-error">{{ message }}</p>
+  }
+
+  <div class="split">
+    <mat-card appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>{{ editingId() === null ? 'Add a vehicle' : 'Edit vehicle' }}</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="submit()" class="stack">
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Name</mat-label>
+              <input matInput type="text" formControlName="label" placeholder="MAN TGX" />
+              @if (form.controls.label.invalid && form.controls.label.touched) {
+                <mat-error>Give the vehicle a name</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Plate</mat-label>
+              <input matInput type="text" formControlName="plate" placeholder="WGM 12345" />
+              @if (form.controls.plate.invalid && form.controls.plate.touched) {
+                <mat-error>3–20 characters</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Vehicle type</mat-label>
+              <mat-select formControlName="vehicle_type">
+                @for (option of vehicleTypes(); track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Body type</mat-label>
+              <mat-select formControlName="body_type">
+                @for (option of bodyTypes(); track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="grid-3">
+            <mat-form-field appearance="outline">
+              <mat-label>Payload (kg)</mat-label>
+              <input matInput type="number" formControlName="payload_kg" min="1" placeholder="24000" />
+              @if (form.controls.payload_kg.invalid && form.controls.payload_kg.touched) {
+                <mat-error>Required</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Volume (m³)</mat-label>
+              <input matInput type="number" formControlName="volume_m3" min="0" step="0.1" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Range (km)</mat-label>
+              <input matInput type="number" formControlName="max_range_km" min="0" />
+            </mat-form-field>
+          </div>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>Dimensions (optional)</mat-panel-title>
+            </mat-expansion-panel-header>
+
+            <p class="dimensions-subhead">Overall vehicle</p>
+            <div class="grid-3">
+              <mat-form-field appearance="outline">
+                <mat-label>Length (m)</mat-label>
+                <input matInput type="number" formControlName="length_m" min="0" step="0.01" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Width (m)</mat-label>
+                <input matInput type="number" formControlName="width_m" min="0" step="0.01" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Height (m)</mat-label>
+                <input matInput type="number" formControlName="height_m" min="0" step="0.01" />
+              </mat-form-field>
+            </div>
+
+            <p class="dimensions-subhead">Cargo compartment</p>
+            <div class="grid-3">
+              <mat-form-field appearance="outline">
+                <mat-label>Length (m)</mat-label>
+                <input matInput type="number" formControlName="cargo_length_m" min="0" step="0.01" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Width (m)</mat-label>
+                <input matInput type="number" formControlName="cargo_width_m" min="0" step="0.01" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Height (m)</mat-label>
+                <input matInput type="number" formControlName="cargo_height_m" min="0" step="0.01" />
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+
+          <div class="actions">
+            <button mat-flat-button type="submit" [disabled]="saving()">
+              <mat-icon>{{ editingId() === null ? 'add' : 'save' }}</mat-icon>
+              {{ saving() ? 'Saving…' : editingId() === null ? 'Add vehicle' : 'Save changes' }}
+            </button>
+            @if (editingId() !== null) {
+              <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+            }
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card appearance="outlined">
+      <mat-card-header>
+        <mat-card-title>Registered vehicles</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (loading()) {
+          <mat-progress-bar mode="indeterminate" />
+        } @else if (vehicles().length === 0) {
+          <p class="empty-state">
+            No vehicles yet. Add your truck or van to start matching loads to it.
+          </p>
+        } @else {
+          <div class="vehicle-list">
+            @for (vehicle of vehicles(); track vehicle.id) {
+              <mat-card appearance="outlined" class="vehicle-card">
+                <mat-card-header>
+                  <mat-card-title>{{ vehicle.label }}</mat-card-title>
+                  <mat-card-subtitle class="plate">{{ vehicle.plate }}</mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                  <dl class="fact-grid">
+                    <div class="fact">
+                      <dt>Type</dt>
+                      <dd>{{ vehicleTypeLabel(vehicle.vehicle_type) }}</dd>
+                    </div>
+                    <div class="fact">
+                      <dt>Body</dt>
+                      <dd>{{ bodyTypeLabel(vehicle.body_type) }}</dd>
+                    </div>
+                    <div class="fact">
+                      <dt>Payload</dt>
+                      <dd>{{ vehicle.payload_kg }} kg</dd>
+                    </div>
+                    <div class="fact">
+                      <dt>Volume</dt>
+                      <dd>{{ vehicle.volume_m3 ? vehicle.volume_m3 + ' m³' : '—' }}</dd>
+                    </div>
+                    <div class="fact">
+                      <dt>Cargo L×W×H</dt>
+                      <dd>
+                        @if (vehicle.cargo_length_m && vehicle.cargo_width_m && vehicle.cargo_height_m) {
+                          {{ vehicle.cargo_length_m }} × {{ vehicle.cargo_width_m }} ×
+                          {{ vehicle.cargo_height_m }} m
+                        } @else {
+                          —
+                        }
+                      </dd>
+                    </div>
+                    <div class="fact">
+                      <dt>Range</dt>
+                      <dd>{{ vehicle.max_range_km ? vehicle.max_range_km + ' km' : '—' }}</dd>
+                    </div>
+                  </dl>
+                </mat-card-content>
+
+                <mat-card-actions align="end">
+                  <button mat-button type="button" (click)="edit(vehicle)">
+                    <mat-icon>edit</mat-icon>
+                    Edit
+                  </button>
+                  <button mat-button type="button" (click)="remove(vehicle)">
+                    <mat-icon>delete</mat-icon>
+                    Remove
+                  </button>
+                </mat-card-actions>
+              </mat-card>
+            }
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+</section>

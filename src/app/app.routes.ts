@@ -1,30 +1,37 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from './core/auth.guard';
+import { authGuard } from './core/auth/auth.guard';
+import { guestGuard } from './core/auth/guest.guard';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'vehicles' },
   {
     path: 'login',
-    loadComponent: () => import('./features/auth/login').then((m) => m.Login),
-    title: 'Sign in · Freight Assistant',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+    title: 'Sign in · logisistance',
   },
   {
     path: 'register',
-    loadComponent: () => import('./features/auth/register').then((m) => m.Register),
-    title: 'Create account · Freight Assistant',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
+    title: 'Create account · logisistance',
   },
   {
     path: 'profile',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/profile/profile').then((m) => m.Profile),
-    title: 'Driver profile · Freight Assistant',
+    loadComponent: () =>
+      import('./features/profile/profile.component').then((m) => m.ProfileComponent),
+    title: 'Driver profile · logisistance',
   },
   {
     path: 'vehicles',
     canActivate: [authGuard],
-    loadComponent: () => import('./features/vehicles/vehicles').then((m) => m.Vehicles),
-    title: 'My fleet · Freight Assistant',
+    loadComponent: () =>
+      import('./features/vehicles/vehicles.component').then((m) => m.VehiclesComponent),
+    title: 'My fleet · logisistance',
   },
   { path: '**', redirectTo: 'vehicles' },
 ];

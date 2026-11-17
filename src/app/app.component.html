@@ -1,0 +1,39 @@
+<mat-toolbar class="app-toolbar">
+  <a class="brand" routerLink="/vehicles">
+    <span class="brand-mark">LI</span>
+    <span class="brand-name">logisistance</span>
+  </a>
+
+  @if (isAuthenticated()) {
+    <nav class="app-nav">
+      <a mat-button routerLink="/vehicles" routerLinkActive="active-link">Fleet</a>
+      <a mat-button routerLink="/profile" routerLinkActive="active-link">Profile</a>
+    </nav>
+  }
+
+  <span class="spacer"></span>
+
+  <button
+    mat-icon-button
+    type="button"
+    (click)="toggleTheme()"
+    [matTooltip]="isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
+    aria-label="Toggle colour theme"
+  >
+    <mat-icon>{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+  </button>
+
+  @if (isAuthenticated()) {
+    @if (user(); as current) {
+      <span class="user-name">{{ current.full_name }}</span>
+    }
+    <button mat-stroked-button type="button" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      Sign out
+    </button>
+  }
+</mat-toolbar>
+
+<main class="app-main">
+  <router-outlet />
+</main>
