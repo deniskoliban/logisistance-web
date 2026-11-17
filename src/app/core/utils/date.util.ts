@@ -1,4 +1,4 @@
-/** Date helpers for display and for sending dates to the API. */
+/** Date helpers for display, for the API, and for the manual-input mask. */
 
 /** Local calendar date → ISO `yyyy-mm-dd` (no timezone shifting). */
 export function toIsoDate(date: Date): string {
@@ -17,6 +17,14 @@ export function fromIsoDate(isoDate: string): Date | null {
   const isReal =
     date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
   return isReal ? date : null;
+}
+
+/**
+ * Mask for manual date entry, matching what the Material date adapter parses for that locale:
+ * `dd.mm.yyyy` in Russian, `mm/dd/yyyy` in English. Separators are inserted while typing.
+ */
+export function dateInputMask(locale: string): string {
+  return locale.startsWith('ru') ? '00.00.0000' : '00/00/0000';
 }
 
 /** Date formatting for display, following the active UI language. */

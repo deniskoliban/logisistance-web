@@ -22,10 +22,11 @@ import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { CountryCatalog } from '../../core/fleet/country-catalog.service';
+import { DateMaskDirective } from '../../shared/directives/date-mask.directive';
 import { validateDriverAge } from '../../core/utils/age.util';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
 import { countryName } from '../../core/utils/country.util';
-import { formatDate, fromIsoDate, toIsoDate } from '../../core/utils/date.util';
+import { dateInputMask, formatDate, fromIsoDate, toIsoDate } from '../../core/utils/date.util';
 import { errorOf } from '../../core/utils/form-error.util';
 import { CountryFieldComponent } from '../../shared/country-field/country-field.component';
 import { FormErrorPipe } from '../../shared/pipes/form-error.pipe';
@@ -55,6 +56,7 @@ interface ProfileModel {
     FormErrorPipe,
     PluralPipe,
     CountryFieldComponent,
+    DateMaskDirective,
   ],
   templateUrl: './profile.component.html',
 })
@@ -68,6 +70,9 @@ export class ProfileComponent implements OnInit {
   protected readonly language = this.transloco.activeLang;
 
   protected readonly residenceCode = signal<string | null>(null);
+
+  /** Manual-entry mask follows the date adapter's locale, so typed text stays parseable. */
+  protected readonly dateMask = computed(() => dateInputMask(this.transloco.activeLang()));
 
   protected readonly errorKey = signal<string | null>(null);
   protected readonly serverMessage = signal<string | null>(null);

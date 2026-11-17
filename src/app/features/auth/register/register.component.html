@@ -34,6 +34,8 @@
                 matInput
                 [formField]="registerForm.date_of_birth"
                 [matDatepicker]="dateOfBirthPicker"
+                [appDateMask]="dateMask()"
+                inputmode="numeric"
               />
               <mat-datepicker-toggle matIconSuffix [for]="dateOfBirthPicker" />
               <mat-datepicker #dateOfBirthPicker [startAt]="startAt" />

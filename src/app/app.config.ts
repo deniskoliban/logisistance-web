@@ -9,6 +9,7 @@ import {
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { provideTransloco, TranslocoService } from '@jsverse/transloco';
+import { provideNgxMask } from 'ngx-mask';
 import { firstValueFrom } from 'rxjs';
 
 import { authInterceptor } from './core/auth/auth.interceptor';
@@ -22,6 +23,8 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideNativeDateAdapter(),
+    // Only the mask engine is used (see DateMaskDirective); separators stay in the rendered text.
+    provideNgxMask({ dropSpecialCharacters: false }),
     provideTransloco({
       config: {
         availableLangs: ['en', 'ru'],

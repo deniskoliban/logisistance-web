@@ -1,4 +1,4 @@
-import { formatDate, fromIsoDate, toIsoDate } from './date.util';
+import { dateInputMask, formatDate, fromIsoDate, toIsoDate } from './date.util';
 import { formatNumber } from './number.util';
 
 describe('toIsoDate / fromIsoDate', () => {
@@ -23,6 +23,15 @@ describe('formatDate', () => {
   it('returns the input unchanged when it is not an ISO date', () => {
     expect(formatDate('not-a-date', 'en')).toBe('not-a-date');
     expect(formatDate('2026-02-31', 'en')).toBe('2026-02-31');
+  });
+});
+
+describe('dateInputMask', () => {
+  it('follows the date adapter format of each language', () => {
+    expect(dateInputMask('ru')).toBe('00.00.0000');
+    expect(dateInputMask('ru-RU')).toBe('00.00.0000');
+    expect(dateInputMask('en')).toBe('00/00/0000');
+    expect(dateInputMask('en-US')).toBe('00/00/0000');
   });
 });
 

@@ -13,8 +13,12 @@ phone, tablet and desktop.
 ## Stack
 
 Angular 22 (standalone components, signals, zoneless) · Angular Material 22 + CDK ·
-Signal Forms (`@angular/forms/signals`) · Transloco 9 (i18n) · TypeScript 6 · Vitest (via
-`@angular/cli`)
+Signal Forms (`@angular/forms/signals`) · Transloco 9 (i18n) · ngx-mask 22 (date mask engine) ·
+TypeScript 6 · Vitest (via `@angular/cli`)
+
+Initial bundle budget is 700 kB in `angular.json` — Material, Transloco, both dictionaries and the
+mask engine together sit at ~636 kB raw (~156 kB transferred). Revisit it if it grows again: lazy
+chunks per route are already in place, so the next lever is splitting the dictionaries out.
 
 ## Run
 
@@ -137,6 +141,25 @@ Conventions that follow from it:
   allowed) and are converted with `toIsoDate()` on submit so no timezone shifts a birthday by a day.
   Validation uses `validateDriverAge()`, mirroring the server's 18–100 rule. Age is never stored or
   typed; the API derives it and the UI only displays it.
+
+### Manual date entry with a mask
+
+Typing in the date field inserts the separators for you: `15031996` becomes `15.03.1996` in Russian
+and `03/15/1996` in English, with the caret following the digits. The mask comes from
+`dateInputMask(locale)`, so it always matches what the Material date adapter can parse; typing is
+still parsed by the picker on blur, and picking from the calendar keeps working.
+
+Two implementation notes worth keeping:
+
+- **The ngx-mask directive itself cannot be used here.** It registers as a
+  `FormValueControl<string | number | null>`, which collides with `MatDatepickerInput` (a `Date`
+  control) on the same `[formField]` input — the compiler rejects the binding. `DateMaskDirective`
+  therefore takes only ngx-mask's formatting engine (`NgxMaskService.applyMask`, configured with
+  `dropSpecialCharacters: false`) and rewrites the element text and caret itself, so no value
+  accessor is involved and the picker stays untouched.
+- **The mask is positional.** Editing a digit in the middle reflows the rest of the date; the common
+  path — type left to right, backspace from the end — behaves exactly as expected. A segmented input
+  would be the next step if middle edits ever matter.
 - **One country and one city per user — the dislocation.** The MVP serves a self-employed carrier
   (sole proprietor), so the country of residence doubles as the default starting point for load
   search; the form says so in a hint under the section label. A company mode (one company, many
