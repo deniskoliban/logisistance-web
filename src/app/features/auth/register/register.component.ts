@@ -23,6 +23,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { CountryCatalog } from '../../../core/fleet/country-catalog.service';
 import { validateDriverAge } from '../../../core/utils/age.util';
 import { apiErrorMessage } from '../../../core/utils/api-error.util';
 import { toIsoDate } from '../../../core/utils/date.util';
@@ -64,6 +65,7 @@ export class RegisterComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+  private readonly countries = inject(CountryCatalog);
 
   protected readonly residenceCode = signal<string | null>(null);
 
@@ -107,8 +109,8 @@ export class RegisterComponent {
       maxLength(path.password, 128);
 
       required(path.country);
-      validate(path.country, () =>
-        this.residenceCode() ? null : { kind: 'countryUnknown' },
+      validate(path.country, ({ value }) =>
+        this.countries.codeFor(value()) ? null : { kind: 'countryUnknown' },
       );
 
       required(path.city);

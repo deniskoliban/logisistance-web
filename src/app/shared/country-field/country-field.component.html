@@ -5,16 +5,13 @@
     type="text"
     [formField]="field()"
     [matAutocomplete]="countryAutocomplete"
+    [autoSelectExact]="optionItems()"
     [placeholder]="'hints.typeToSearch' | transloco"
     autocomplete="country-name"
-    (input)="typed()"
   />
   <mat-icon matPrefix>public</mat-icon>
 
-  <mat-autocomplete
-    #countryAutocomplete="matAutocomplete"
-    (optionSelected)="optionSelected($event.option.value)"
-  >
+  <mat-autocomplete #countryAutocomplete="matAutocomplete">
     @for (country of filtered(); track country.code) {
       <mat-option [value]="country.name">
         {{ country.name }}

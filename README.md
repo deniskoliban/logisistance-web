@@ -143,6 +143,26 @@ Conventions that follow from it:
   drivers and vehicles, plus a company registration country) is planned and deliberately absent.
   The field is `app-country-field`: an autocomplete over the API-served list that shows the localised
   *name* while exposing the ISO *code* through `[(code)]`, so no caller maps names to codes by hand.
+  `CountryCatalog` (`core/fleet/`) holds that list once for the field, the validators and the
+  name→code mapping on submit.
+
+### Typing a whole option selects it
+
+`autoSelectExact` (`shared/directives/`) makes a fully typed label a real selection: type `Poland`
+(or `польша`, in any case, with stray spaces) and the field becomes that option without a click.
+Half-typed text stays free text, so the list keeps narrowing.
+
+```html
+<input matInput [formField]="form.country" [matAutocomplete]="auto"
+       [autoSelectExact]="optionItems()" />
+```
+
+Two details worth keeping when reusing it elsewhere:
+
+- The option list is passed as **data**, not read from the rendered `mat-option`s: the panel only
+  renders while open, so on the first keystroke the rendered list is still empty.
+- It reacts to the bound field value rather than to DOM `input` events, because `[formField]` writes
+  the model from its own listener and a second listener would race with it.
 
 ### Responsive on phone, tablet and desktop
 

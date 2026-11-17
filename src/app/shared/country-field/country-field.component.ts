@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, model, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, model } from '@angular/core';
 import { FieldTree, FormField } from '@angular/forms/signals';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -6,21 +6,23 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
-import { FleetService } from '../../core/fleet/fleet.service';
-import { CountryOption } from '../../core/models';
+import { CountryCatalog } from '../../core/fleet/country-catalog.service';
+import { SUPPORTED_LANGUAGES } from '../../core/services/language.service';
 import {
-  countryCodeFor,
   countryName,
+  countryNameMatchesAnyLocale,
   filterCountries,
-  localizedCountryOptions,
 } from '../../core/utils/country.util';
+import { AutoSelectExactDirective } from '../directives/auto-select-exact.directive';
+import { MatchableOption } from '../directives/autocomplete-match.util';
 import { FormErrorPipe } from '../pipes/form-error.pipe';
 
 /**
  * Searchable country field bound to a signal-forms field.
  *
- * Shows the localised country name in the input but exposes the ISO code through `code`,
- * so callers never have to map names back to codes themselves.
+ * The input holds the localised country *name*; the ISO *code* is exposed through the two-way
+ * `code` model so callers never map names to codes themselves. Typing a name in full is enough:
+ * `autoSelectExact` turns the text into the option instead of requiring a click.
  */
 @Component({
   selector: 'app-country-field',
@@ -32,39 +34,57 @@ import { FormErrorPipe } from '../pipes/form-error.pipe';
     FormField,
     TranslocoPipe,
     FormErrorPipe,
+    AutoSelectExactDirective,
   ],
   templateUrl: './country-field.component.html',
   styleUrl: './country-field.component.scss',
 })
 export class CountryFieldComponent {
-  private readonly fleetService = inject(FleetService);
+  private readonly catalog = inject(CountryCatalog);
   private readonly transloco = inject(TranslocoService);
 
-  /** The signal-forms field this input edits. */
+  /** The signal-forms field this input edits; its value is the country name. */
   readonly field = input.required<FieldTree<string>>();
-  /** Dictionary key for the label, e.g. `fields.country`. */
+  /** Dictionary key for the label, e.g. `fields.countryOfResidence`. */
   readonly labelKey = input.required<string>();
-  /** Selected ISO code, two-way bound: `[(code)]="residenceCode"`. */
+  /** Selected ISO code, two-way bound: `[(code)]="residenceCountry"`. */
   readonly code = model<string | null>(null);
 
-  private readonly countryCodes = signal<string[]>([]);
+  protected readonly options = this.catalog.options;
 
-  protected readonly options = computed(() =>
-    localizedCountryOptions(this.countryCodes(), this.transloco.activeLang()),
+  /** Same list as plain data, for the auto-select directive. */
+  protected readonly optionItems = computed<MatchableOption[]>(() =>
+    this.options().map((country) => ({ value: country.name, viewValue: country.name })),
   );
 
-  protected readonly filtered = computed(() =>
-    filterCountries(this.options(), this.field()().value()),
-  );
+  /** Current text in the input, kept as a signal so template filtering stays reactive. */
+  protected readonly value = computed(() => this.field()().value());
+
+  protected readonly filtered = computed(() => filterCountries(this.options(), this.value()));
 
   constructor() {
-    this.fleetService.countries().subscribe({
-      next: (countries: CountryOption[]) =>
-        this.countryCodes.set(countries.map((country) => country.code)),
-      error: () => this.countryCodes.set([]),
+    // Text → code: a typed-out name resolves to its ISO code for the parent form.
+    effect(() => {
+      const text = this.value();
+      const matched = this.catalog.codeFor(text);
+      if (matched) {
+        if (matched !== this.code()) {
+          this.code.set(matched);
+        }
+        return;
+      }
+
+      // A label left over from the previous language is not free text: keep the selection.
+      const current = this.code();
+      if (current && countryNameMatchesAnyLocale(current, text, SUPPORTED_LANGUAGES)) {
+        return;
+      }
+      if (this.code() !== null) {
+        this.code.set(null);
+      }
     });
 
-    // Keep the visible name in step with the language and with a code set from outside.
+    // Code → text: a code set from outside (or a language switch) shows the localised name.
     effect(() => {
       const language = this.transloco.activeLang();
       const code = this.code();
@@ -72,17 +92,9 @@ export class CountryFieldComponent {
         return;
       }
       const name = countryName(code, language);
-      if (name && name !== this.field()().value()) {
+      if (name && name !== this.value()) {
         this.field()().value.set(name);
       }
     });
-  }
-
-  protected optionSelected(name: string): void {
-    this.code.set(countryCodeFor(this.options(), name));
-  }
-
-  protected typed(): void {
-    this.code.set(null);
   }
 }

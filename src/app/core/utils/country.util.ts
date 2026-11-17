@@ -39,3 +39,18 @@ export function countryCodeFor(options: CountryOption[], name: string): string |
   const needle = name.trim().toLowerCase();
   return options.find((option) => option.name.toLowerCase() === needle)?.code ?? null;
 }
+
+/**
+ * Whether `text` is the name of `code` in any of `locales`.
+ *
+ * Needed when the UI language changes: the input still holds the previous language's label for a
+ * moment, and that must not be mistaken for free text (which would clear the selected country).
+ */
+export function countryNameMatchesAnyLocale(
+  code: string,
+  text: string,
+  locales: readonly string[],
+): boolean {
+  const needle = text.trim().toLowerCase();
+  return locales.some((locale) => (countryName(code, locale) ?? '').toLowerCase() === needle);
+}

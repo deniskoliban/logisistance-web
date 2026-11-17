@@ -21,6 +21,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { CountryCatalog } from '../../core/fleet/country-catalog.service';
 import { validateDriverAge } from '../../core/utils/age.util';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
 import { countryName } from '../../core/utils/country.util';
@@ -61,6 +62,7 @@ export class ProfileComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly transloco = inject(TranslocoService);
+  private readonly countries = inject(CountryCatalog);
 
   protected readonly user = this.authService.user;
   protected readonly language = this.transloco.activeLang;
@@ -100,8 +102,8 @@ export class ProfileComponent implements OnInit {
       });
 
       required(path.country);
-      validate(path.country, () =>
-        this.residenceCode() ? null : { kind: 'countryUnknown' },
+      validate(path.country, ({ value }) =>
+        this.countries.codeFor(value()) ? null : { kind: 'countryUnknown' },
       );
 
       required(path.city);
