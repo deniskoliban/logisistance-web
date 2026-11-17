@@ -34,6 +34,7 @@ import { FormErrorPipe } from '../pipes/form-error.pipe';
     FormErrorPipe,
   ],
   templateUrl: './country-field.component.html',
+  styleUrl: './country-field.component.scss',
 })
 export class CountryFieldComponent {
   private readonly fleetService = inject(FleetService);

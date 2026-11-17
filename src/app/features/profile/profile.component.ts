@@ -33,10 +33,8 @@ import { PluralPipe } from '../../shared/pipes/plural.pipe';
 interface ProfileModel {
   full_name: string;
   date_of_birth: Date | null;
-  /** Country of residence, shown as a localised name. */
+  /** Country of residence / default starting point, shown as a localised name. */
   country: string;
-  /** Country where the company is registered, shown as a localised name. */
-  company_country: string;
   city: string;
 }
 
@@ -68,27 +66,22 @@ export class ProfileComponent implements OnInit {
   protected readonly language = this.transloco.activeLang;
 
   protected readonly residenceCode = signal<string | null>(null);
-  protected readonly companyCode = signal<string | null>(null);
 
   protected readonly errorKey = signal<string | null>(null);
   protected readonly serverMessage = signal<string | null>(null);
   protected readonly errorOf = errorOf;
 
   /** Snapshot values are derived signals, so templates never call methods. */
-  protected readonly birthDateLabel = computed(() =>
-    this.formatIso(this.user()?.date_of_birth),
-  );
+  protected readonly birthDateLabel = computed(() => this.formatIso(this.user()?.date_of_birth));
   protected readonly residenceLabel = computed(() => this.localiseCountry(this.user()?.country));
-  protected readonly companyLabel = computed(() =>
-    this.localiseCountry(this.user()?.company_country),
+  protected readonly memberSince = computed(() =>
+    this.formatIso(this.user()?.created_at?.slice(0, 10)),
   );
-  protected readonly memberSince = computed(() => this.formatIso(this.user()?.created_at?.slice(0, 10)));
 
   protected readonly model = signal<ProfileModel>({
     full_name: this.authService.user()?.full_name ?? '',
     date_of_birth: fromIsoDate(this.authService.user()?.date_of_birth ?? ''),
     country: '',
-    company_country: '',
     city: this.authService.user()?.city ?? '',
   });
 
@@ -111,11 +104,6 @@ export class ProfileComponent implements OnInit {
         this.residenceCode() ? null : { kind: 'countryUnknown' },
       );
 
-      required(path.company_country);
-      validate(path.company_country, () =>
-        this.companyCode() ? null : { kind: 'countryUnknown' },
-      );
-
       required(path.city);
       minLength(path.city, 2);
       maxLength(path.city, 120);
@@ -127,10 +115,9 @@ export class ProfileComponent implements OnInit {
           this.serverMessage.set(null);
           const value = this.model();
           const residence = this.residenceCode();
-          const company = this.companyCode();
           const dateOfBirth = value.date_of_birth;
 
-          if (!residence || !company || !dateOfBirth) {
+          if (!residence || !dateOfBirth) {
             this.errorKey.set('errors.countryUnknown');
             return undefined;
           }
@@ -141,7 +128,6 @@ export class ProfileComponent implements OnInit {
                 full_name: value.full_name,
                 date_of_birth: toIsoDate(dateOfBirth),
                 country: residence,
-                company_country: company,
                 city: value.city,
               }),
             );
@@ -160,9 +146,7 @@ export class ProfileComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    const user = this.authService.user();
-    this.residenceCode.set(user?.country ?? null);
-    this.companyCode.set(user?.company_country ?? null);
+    this.residenceCode.set(this.authService.user()?.country ?? null);
   }
 
   private formatIso(isoDate: string | undefined): string {

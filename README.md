@@ -137,11 +137,12 @@ Conventions that follow from it:
   allowed) and are converted with `toIsoDate()` on submit so no timezone shifts a birthday by a day.
   Validation uses `validateDriverAge()`, mirroring the server's 18–100 rule. Age is never stored or
   typed; the API derives it and the UI only displays it.
-- **Two countries per driver**: `country` is where the driver lives, `company_country` is where the
-  carrier company is registered — they are regularly different for EU operators, and freight search
-  will need both. Both are the same `app-country-field` component: an autocomplete over the
-  API-served list that shows the localised *name* while exposing the ISO *code* through `[(code)]`,
-  so no caller maps names to codes by hand.
+- **One country and one city per user — the dislocation.** The MVP serves a self-employed carrier
+  (sole proprietor), so the country of residence doubles as the default starting point for load
+  search; the form says so in a hint under the section label. A company mode (one company, many
+  drivers and vehicles, plus a company registration country) is planned and deliberately absent.
+  The field is `app-country-field`: an autocomplete over the API-served list that shows the localised
+  *name* while exposing the ISO *code* through `[(code)]`, so no caller maps names to codes by hand.
 
 ### Responsive on phone, tablet and desktop
 
@@ -215,13 +216,14 @@ The same markup in both languages — only the dictionaries change:
 
 ## Behaviour
 
-- Registration collects name, date of birth, email, password, country of residence, company
-  registration country and city; a successful sign-up signs the user in immediately. Age is never
-  typed in — it is derived by the API from the date of birth, so it cannot drift. The form blocks
-  under-18 and future dates with a message from the same schema rule the API enforces.
-- Both country fields are searchable autocompletes: typing `pol` (or `Пол` in Russian) narrows the
-  list, matched on name substring or exact code. The API stores ISO codes, the field shows localised
-  names (`core/utils/country.util.ts` maps between them).
+- The registration form has two sections: **user details** (full name, date of birth, country and
+  city — the driver's default starting point) and **sign-in** (email, password). A successful sign-up
+  signs the user in immediately. Age is never typed in: it is derived by the API from the date of
+  birth, so it cannot drift, and the form blocks under-18 and future dates with a message from the
+  same schema rule the API enforces.
+- Country is a searchable autocomplete: typing `pol` (or `Пол` in Russian) narrows the list, matched
+  on name substring or exact code. The API stores ISO codes, the field shows localised names
+  (`core/utils/country.util.ts` maps between them).
 - The JWT is attached by a functional interceptor to every `/api/...` request and survives a page
   reload through `localStorage`. A `401` from the API clears the session and returns to `/login`, so
   a stale token cannot leave the UI looking signed in.

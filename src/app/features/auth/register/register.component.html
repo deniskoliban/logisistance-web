@@ -15,7 +15,8 @@
 
       <form [formRoot]="registerForm" class="stack">
         <section class="form-section">
-          <h2 class="form-section-label">{{ 'register.sectionDriver' | transloco }}</h2>
+          <h2 class="form-section-label">{{ 'register.sectionUser' | transloco }}</h2>
+          <p class="form-section-hint">{{ 'hints.dislocation' | transloco }}</p>
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
@@ -40,6 +41,28 @@
               @let dateOfBirthError = registerForm.date_of_birth | formError;
               @if (dateOfBirthError) {
                 <mat-error>{{ dateOfBirthError }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <div class="grid-auto">
+            <app-country-field
+              [field]="registerForm.country"
+              labelKey="fields.countryOfResidence"
+              [(code)]="residenceCode"
+            />
+
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'fields.city' | transloco }}</mat-label>
+              <input
+                matInput
+                type="text"
+                [formField]="registerForm.city"
+                autocomplete="address-level2"
+              />
+              @let cityError = registerForm.city | formError;
+              @if (cityError) {
+                <mat-error>{{ cityError }}</mat-error>
               }
             </mat-form-field>
           </div>
@@ -73,34 +96,6 @@
             @let passwordError = registerForm.password | formError;
             @if (passwordError) {
               <mat-error>{{ passwordError }}</mat-error>
-            }
-          </mat-form-field>
-        </section>
-
-        <mat-divider />
-
-        <section class="form-section">
-          <h2 class="form-section-label">{{ 'register.sectionCountries' | transloco }}</h2>
-
-          <div class="grid-auto">
-            <app-country-field
-              [field]="registerForm.country"
-              labelKey="fields.countryOfResidence"
-              [(code)]="residenceCode"
-            />
-            <app-country-field
-              [field]="registerForm.company_country"
-              labelKey="fields.companyCountry"
-              [(code)]="companyCode"
-            />
-          </div>
-
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'fields.city' | transloco }}</mat-label>
-            <input matInput type="text" [formField]="registerForm.city" autocomplete="address-level2" />
-            @let cityError = registerForm.city | formError;
-            @if (cityError) {
-              <mat-error>{{ cityError }}</mat-error>
             }
           </mat-form-field>
         </section>

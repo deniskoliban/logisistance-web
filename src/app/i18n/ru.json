@@ -34,9 +34,8 @@
     "signInLink": "Войти"
   },
   "register": {
-    "sectionDriver": "Водитель",
-    "sectionSignIn": "Данные для входа",
-    "sectionCountries": "Страны"
+    "sectionUser": "Данные пользователя",
+    "sectionSignIn": "Данные для входа"
   },
   "fields": {
     "fullName": "Имя и фамилия",
@@ -44,7 +43,6 @@
     "email": "Электронная почта",
     "password": "Пароль",
     "countryOfResidence": "Страна проживания",
-    "companyCountry": "Страна регистрации",
     "city": "Город",
     "name": "Название",
     "plate": "Госномер",
@@ -60,7 +58,8 @@
   "hints": {
     "age18": "18 лет или старше",
     "password8": "Минимум 8 символов",
-    "typeToSearch": "Начните вводить…"
+    "typeToSearch": "Начните вводить…",
+    "dislocation": "Страна и город — ваша стартовая точка для поиска грузов."
   },
   "errors": {
     "required": "Обязательное поле",
@@ -83,11 +82,10 @@
     "fleetLoadFailed": "Не удалось загрузить автопарк."
   },
   "profile": {
-    "title": "Профиль водителя",
+    "title": "Профиль пользователя",
     "subtitle": "Основные данные, по которым будут подбираться грузы и маршруты.",
-    "accountDetails": "Данные аккаунта",
+    "accountDetails": "Данные пользователя",
     "snapshot": "Кратко",
-    "driver": "Водитель",
     "base": "База",
     "memberSince": "В системе с",
     "years": {

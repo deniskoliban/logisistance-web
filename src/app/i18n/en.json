@@ -34,9 +34,8 @@
     "signInLink": "Sign in"
   },
   "register": {
-    "sectionDriver": "Driver",
-    "sectionSignIn": "Sign-in",
-    "sectionCountries": "Countries"
+    "sectionUser": "User details",
+    "sectionSignIn": "Sign-in"
   },
   "fields": {
     "fullName": "Full name",
@@ -44,7 +43,6 @@
     "email": "Email",
     "password": "Password",
     "countryOfResidence": "Country of residence",
-    "companyCountry": "Company registered in",
     "city": "City",
     "name": "Name",
     "plate": "Plate",
@@ -60,7 +58,8 @@
   "hints": {
     "age18": "18 or older",
     "password8": "At least 8 characters",
-    "typeToSearch": "Start typing…"
+    "typeToSearch": "Start typing…",
+    "dislocation": "Your country and city are the default starting point for load search."
   },
   "errors": {
     "required": "This field is required",
@@ -83,11 +82,10 @@
     "fleetLoadFailed": "Could not load your fleet."
   },
   "profile": {
-    "title": "Driver profile",
+    "title": "User profile",
     "subtitle": "The basics loads and routes will be matched against.",
-    "accountDetails": "Account details",
+    "accountDetails": "User details",
     "snapshot": "Snapshot",
-    "driver": "Driver",
     "base": "Base",
     "memberSince": "Member since",
     "years": {

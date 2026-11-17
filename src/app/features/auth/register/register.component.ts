@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   FormField,
   FormRoot,
@@ -35,10 +35,8 @@ interface RegisterModel {
   date_of_birth: Date | null;
   email: string;
   password: string;
-  /** Country of residence, shown as a localised name. */
+  /** Country of residence / default starting point, shown as a localised name. */
   country: string;
-  /** Country where the company is registered, shown as a localised name. */
-  company_country: string;
   city: string;
 }
 
@@ -68,7 +66,6 @@ export class RegisterComponent {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly residenceCode = signal<string | null>(null);
-  protected readonly companyCode = signal<string | null>(null);
 
   /** Opens the calendar a plausible distance back instead of on the current month. */
   protected readonly startAt = new Date(new Date().getFullYear() - 30, 0, 1);
@@ -79,7 +76,6 @@ export class RegisterComponent {
     email: '',
     password: '',
     country: '',
-    company_country: '',
     city: '',
   });
 
@@ -88,10 +84,6 @@ export class RegisterComponent {
   /** Raw message from the API, kept verbatim in English. */
   protected readonly serverMessage = signal<string | null>(null);
   protected readonly errorOf = errorOf;
-
-  protected readonly hasCountries = computed(
-    () => this.residenceCode() !== null && this.companyCode() !== null,
-  );
 
   protected readonly registerForm = form(
     this.model,
@@ -119,11 +111,6 @@ export class RegisterComponent {
         this.residenceCode() ? null : { kind: 'countryUnknown' },
       );
 
-      required(path.company_country);
-      validate(path.company_country, () =>
-        this.companyCode() ? null : { kind: 'countryUnknown' },
-      );
-
       required(path.city);
       minLength(path.city, 2);
       maxLength(path.city, 120);
@@ -135,10 +122,9 @@ export class RegisterComponent {
           this.serverMessage.set(null);
           const value = this.model();
           const residence = this.residenceCode();
-          const company = this.companyCode();
           const dateOfBirth = value.date_of_birth;
 
-          if (!residence || !company || !dateOfBirth) {
+          if (!residence || !dateOfBirth) {
             this.errorKey.set('errors.countryUnknown');
             return undefined;
           }
@@ -151,7 +137,6 @@ export class RegisterComponent {
                 password: value.password,
                 date_of_birth: toIsoDate(dateOfBirth),
                 country: residence,
-                company_country: company,
                 city: value.city,
               }),
             );

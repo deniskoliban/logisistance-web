@@ -24,16 +24,16 @@
 
       <mat-card-content>
         <form [formRoot]="profileForm" class="stack">
-          <mat-form-field appearance="outline">
-            <mat-label>{{ 'fields.fullName' | transloco }}</mat-label>
-            <input matInput type="text" [formField]="profileForm.full_name" autocomplete="name" />
-            @let fullNameError = profileForm.full_name | formError;
-            @if (fullNameError) {
-              <mat-error>{{ fullNameError }}</mat-error>
-            }
-          </mat-form-field>
-
           <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'fields.fullName' | transloco }}</mat-label>
+              <input matInput type="text" [formField]="profileForm.full_name" autocomplete="name" />
+              @let fullNameError = profileForm.full_name | formError;
+              @if (fullNameError) {
+                <mat-error>{{ fullNameError }}</mat-error>
+              }
+            </mat-form-field>
+
             <mat-form-field appearance="outline">
               <mat-label>{{ 'fields.dateOfBirth' | transloco }}</mat-label>
               <input
@@ -48,6 +48,16 @@
                 <mat-error>{{ dateOfBirthError }}</mat-error>
               }
             </mat-form-field>
+          </div>
+
+          <p class="form-section-hint">{{ 'hints.dislocation' | transloco }}</p>
+
+          <div class="grid-auto">
+            <app-country-field
+              [field]="profileForm.country"
+              labelKey="fields.countryOfResidence"
+              [(code)]="residenceCode"
+            />
 
             <mat-form-field appearance="outline">
               <mat-label>{{ 'fields.city' | transloco }}</mat-label>
@@ -62,19 +72,6 @@
                 <mat-error>{{ cityError }}</mat-error>
               }
             </mat-form-field>
-          </div>
-
-          <div class="grid-auto">
-            <app-country-field
-              [field]="profileForm.country"
-              labelKey="fields.countryOfResidence"
-              [(code)]="residenceCode"
-            />
-            <app-country-field
-              [field]="profileForm.company_country"
-              labelKey="fields.companyCountry"
-              [(code)]="companyCode"
-            />
           </div>
 
           @if (errorKey(); as key) {
@@ -107,7 +104,7 @@
         @if (user(); as current) {
           <mat-list>
             <mat-list-item>
-              <span matListItemTitle>{{ 'profile.driver' | transloco }}</span>
+              <span matListItemTitle>{{ 'fields.fullName' | transloco }}</span>
               <span matListItemLine>{{ current.full_name }}</span>
             </mat-list-item>
             <mat-list-item>
@@ -119,10 +116,6 @@
             <mat-list-item>
               <span matListItemTitle>{{ 'profile.base' | transloco }}</span>
               <span matListItemLine>{{ current.city }}, {{ residenceLabel() }}</span>
-            </mat-list-item>
-            <mat-list-item>
-              <span matListItemTitle>{{ 'fields.companyCountry' | transloco }}</span>
-              <span matListItemLine>{{ companyLabel() }}</span>
             </mat-list-item>
             <mat-list-item>
               <span matListItemTitle>{{ 'fields.email' | transloco }}</span>
