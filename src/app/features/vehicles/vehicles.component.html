@@ -1,39 +1,46 @@
-<section class="page">
+<section class="page" *transloco="let t">
   <header class="page-head">
     <div>
-      <h1>My fleet</h1>
-      <p>Payload and cargo dimensions decide which loads actually fit your vehicle.</p>
+      <h1>{{ t('vehicles.title') }}</h1>
+      <p>{{ t('vehicles.subtitle') }}</p>
     </div>
     <span class="identity-sub">
-      {{ vehicles().length }} vehicle{{ vehicles().length === 1 ? '' : 's' }}
+      {{
+        t(pluralKey('vehicles.count', language(), vehicles().length), { count: vehicles().length })
+      }}
     </span>
   </header>
 
-  @if (error(); as message) {
+  @if (errorKey(); as key) {
+    <p class="form-error">{{ t(key) }}</p>
+  }
+  @if (serverMessage(); as message) {
     <p class="form-error">{{ message }}</p>
   }
 
   <div class="split">
     <mat-card appearance="outlined">
       <mat-card-header>
-        <mat-card-title>{{ editingId() === null ? 'Add a vehicle' : 'Edit vehicle' }}</mat-card-title>
+        <mat-card-title>
+          {{ editingId() === null ? t('vehicles.addTitle') : t('vehicles.editTitle') }}
+        </mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
         <form [formRoot]="vehicleForm" class="stack">
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>Name</mat-label>
+              <mat-label>{{ t('fields.name') }}</mat-label>
               <input matInput type="text" [formField]="vehicleForm.label" placeholder="MAN TGX" />
-              @if (errorOf(vehicleForm.label); as message) {
+              @if (errorOf(vehicleForm.label, t); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Plate</mat-label>
+              <mat-label>{{ t('fields.plate') }}</mat-label>
               <input matInput type="text" [formField]="vehicleForm.plate" placeholder="WGM 12345" />
-              @if (errorOf(vehicleForm.plate); as message) {
+              @if (errorOf(vehicleForm.plate, t); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
@@ -41,94 +48,88 @@
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>Vehicle type</mat-label>
+              <mat-label>{{ t('fields.vehicleType') }}</mat-label>
               <mat-select [formField]="vehicleForm.vehicle_type">
                 @for (option of vehicleTypes(); track option.value) {
-                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  <mat-option [value]="option.value">
+                    {{ t('types.vehicle.' + option.value) }}
+                  </mat-option>
                 }
               </mat-select>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Body type</mat-label>
+              <mat-label>{{ t('fields.bodyType') }}</mat-label>
               <mat-select [formField]="vehicleForm.body_type">
                 @for (option of bodyTypes(); track option.value) {
-                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  <mat-option [value]="option.value">{{ t('types.body.' + option.value) }}</mat-option>
                 }
               </mat-select>
             </mat-form-field>
           </div>
 
-          <div class="grid-3">
+          <div class="grid-auto">
             <mat-form-field appearance="outline">
-              <mat-label>Payload (kg)</mat-label>
+              <mat-label>{{ t('fields.payload') }}</mat-label>
               <input matInput type="number" [formField]="vehicleForm.payload_kg" />
-              @if (errorOf(vehicleForm.payload_kg); as message) {
+              @if (errorOf(vehicleForm.payload_kg, t); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Volume (m³)</mat-label>
+              <mat-label>{{ t('fields.volume') }}</mat-label>
               <input matInput type="number" [formField]="vehicleForm.volume_m3" step="0.1" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Range (km)</mat-label>
+              <mat-label>{{ t('fields.range') }}</mat-label>
               <input matInput type="number" [formField]="vehicleForm.max_range_km" />
             </mat-form-field>
           </div>
 
           <mat-expansion-panel>
             <mat-expansion-panel-header>
-              <mat-panel-title>Dimensions (optional)</mat-panel-title>
+              <mat-panel-title>{{ t('vehicles.dimensions') }}</mat-panel-title>
             </mat-expansion-panel-header>
 
-            <p class="dimensions-subhead">Overall vehicle</p>
-            <div class="grid-3">
+            <p class="dimensions-subhead">{{ t('vehicles.overallVehicle') }}</p>
+            <div class="grid-auto">
               <mat-form-field appearance="outline">
-                <mat-label>Length (m)</mat-label>
+                <mat-label>{{ t('fields.length') }}</mat-label>
                 <input matInput type="number" [formField]="vehicleForm.length_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>Width (m)</mat-label>
+                <mat-label>{{ t('fields.width') }}</mat-label>
                 <input matInput type="number" [formField]="vehicleForm.width_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>Height (m)</mat-label>
+                <mat-label>{{ t('fields.height') }}</mat-label>
                 <input matInput type="number" [formField]="vehicleForm.height_m" step="0.01" />
               </mat-form-field>
             </div>
 
-            <p class="dimensions-subhead">Cargo compartment</p>
-            <div class="grid-3">
+            <p class="dimensions-subhead">{{ t('vehicles.cargoCompartment') }}</p>
+            <div class="grid-auto">
               <mat-form-field appearance="outline">
-                <mat-label>Length (m)</mat-label>
+                <mat-label>{{ t('fields.length') }}</mat-label>
                 <input
                   matInput
                   type="number"
                   [formField]="vehicleForm.cargo_length_m"
-                 
                   step="0.01"
                 />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>Width (m)</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [formField]="vehicleForm.cargo_width_m"
-                 
-                  step="0.01"
-                />
+                <mat-label>{{ t('fields.width') }}</mat-label>
+                <input matInput type="number" [formField]="vehicleForm.cargo_width_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>Height (m)</mat-label>
+                <mat-label>{{ t('fields.height') }}</mat-label>
                 <input
                   matInput
                   type="number"
                   [formField]="vehicleForm.cargo_height_m"
-                 
                   step="0.01"
                 />
               </mat-form-field>
@@ -140,14 +141,16 @@
               <mat-icon>{{ editingId() === null ? 'add' : 'save' }}</mat-icon>
               {{
                 vehicleForm().submitting()
-                  ? 'Saving…'
+                  ? t('actions.saving')
                   : editingId() === null
-                    ? 'Add vehicle'
-                    : 'Save changes'
+                    ? t('actions.addVehicle')
+                    : t('actions.save')
               }}
             </button>
             @if (editingId() !== null) {
-              <button mat-button type="button" (click)="cancelEdit()">Cancel</button>
+              <button mat-button type="button" (click)="cancelEdit()">
+                {{ t('actions.cancel') }}
+              </button>
             }
           </div>
         </form>
@@ -156,16 +159,14 @@
 
     <mat-card appearance="outlined">
       <mat-card-header>
-        <mat-card-title>Registered vehicles</mat-card-title>
+        <mat-card-title>{{ t('vehicles.registered') }}</mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
         @if (loading()) {
           <mat-progress-bar mode="indeterminate" />
         } @else if (vehicles().length === 0) {
-          <p class="empty-state">
-            No vehicles yet. Add your truck or van to start matching loads to it.
-          </p>
+          <p class="empty-state">{{ t('vehicles.empty') }}</p>
         } @else {
           <div class="vehicle-list">
             @for (vehicle of vehicles(); track vehicle.id) {
@@ -178,35 +179,52 @@
                 <mat-card-content>
                   <dl class="fact-grid">
                     <div class="fact">
-                      <dt>Type</dt>
-                      <dd>{{ vehicleTypeLabel(vehicle.vehicle_type) }}</dd>
+                      <dt>{{ t('vehicles.facts.type') }}</dt>
+                      <dd>{{ t('types.vehicle.' + vehicle.vehicle_type) }}</dd>
                     </div>
                     <div class="fact">
-                      <dt>Body</dt>
-                      <dd>{{ bodyTypeLabel(vehicle.body_type) }}</dd>
+                      <dt>{{ t('vehicles.facts.body') }}</dt>
+                      <dd>{{ t('types.body.' + vehicle.body_type) }}</dd>
                     </div>
                     <div class="fact">
-                      <dt>Payload</dt>
-                      <dd>{{ vehicle.payload_kg }} kg</dd>
+                      <dt>{{ t('vehicles.facts.payload') }}</dt>
+                      <dd>{{ t('vehicles.weights.kg', { value: numberLabel(vehicle.payload_kg) }) }}</dd>
                     </div>
                     <div class="fact">
-                      <dt>Volume</dt>
-                      <dd>{{ vehicle.volume_m3 ? vehicle.volume_m3 + ' m³' : '—' }}</dd>
+                      <dt>{{ t('vehicles.facts.volume') }}</dt>
+                      <dd>
+                        {{
+                          vehicle.volume_m3
+                            ? t('vehicles.weights.m3', { value: numberLabel(vehicle.volume_m3, 1) })
+                            : t('common.notProvided')
+                        }}
+                      </dd>
                     </div>
                     <div class="fact">
-                      <dt>Cargo L×W×H</dt>
+                      <dt>{{ t('vehicles.facts.cargo') }}</dt>
                       <dd>
                         @if (vehicle.cargo_length_m && vehicle.cargo_width_m && vehicle.cargo_height_m) {
-                          {{ vehicle.cargo_length_m }} × {{ vehicle.cargo_width_m }} ×
-                          {{ vehicle.cargo_height_m }} m
+                          {{
+                            t('vehicles.weights.dimensions', {
+                              length: numberLabel(vehicle.cargo_length_m, 2),
+                              width: numberLabel(vehicle.cargo_width_m, 2),
+                              height: numberLabel(vehicle.cargo_height_m, 2),
+                            })
+                          }}
                         } @else {
-                          —
+                          {{ t('common.notProvided') }}
                         }
                       </dd>
                     </div>
                     <div class="fact">
-                      <dt>Range</dt>
-                      <dd>{{ vehicle.max_range_km ? vehicle.max_range_km + ' km' : '—' }}</dd>
+                      <dt>{{ t('vehicles.facts.range') }}</dt>
+                      <dd>
+                        {{
+                          vehicle.max_range_km
+                            ? t('vehicles.weights.km', { value: numberLabel(vehicle.max_range_km) })
+                            : t('common.notProvided')
+                        }}
+                      </dd>
                     </div>
                   </dl>
                 </mat-card-content>
@@ -214,11 +232,11 @@
                 <mat-card-actions align="end">
                   <button mat-button type="button" (click)="edit(vehicle)">
                     <mat-icon>edit</mat-icon>
-                    Edit
+                    {{ t('actions.edit') }}
                   </button>
                   <button mat-button type="button" (click)="remove(vehicle)">
                     <mat-icon>delete</mat-icon>
-                    Remove
+                    {{ t('actions.remove') }}
                   </button>
                 </mat-card-actions>
               </mat-card>

@@ -20,12 +20,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom, forkJoin } from 'rxjs';
 
 import { FleetService } from '../../core/fleet/fleet.service';
+import { pluralKey } from '../../core/i18n/plural.util';
 import { BodyType, OptionItem, Vehicle, VehicleInput, VehicleType } from '../../core/models';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
 import { errorOf } from '../../core/utils/form-error.util';
+import { formatNumber } from '../../core/utils/number.util';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -76,6 +79,7 @@ const EMPTY_VEHICLE: VehicleModel = {
     MatProgressBarModule,
     FormRoot,
     FormField,
+    TranslocoDirective,
   ],
   templateUrl: './vehicles.component.html',
 })
@@ -83,14 +87,19 @@ export class VehiclesComponent implements OnInit {
   private readonly fleetService = inject(FleetService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly vehicles = signal<Vehicle[]>([]);
   protected readonly vehicleTypes = signal<OptionItem[]>([]);
   protected readonly bodyTypes = signal<OptionItem[]>([]);
 
   protected readonly loading = signal(true);
-  protected readonly error = signal<string | null>(null);
   protected readonly editingId = signal<number | null>(null);
+  protected readonly errorKey = signal<string | null>(null);
+  protected readonly serverMessage = signal<string | null>(null);
+
+  protected readonly language = this.transloco.activeLang;
+  protected readonly pluralKey = pluralKey;
   protected readonly errorOf = errorOf;
 
   protected readonly model = signal<VehicleModel>({ ...EMPTY_VEHICLE });
@@ -98,36 +107,39 @@ export class VehiclesComponent implements OnInit {
   protected readonly vehicleForm = form(
     this.model,
     (path) => {
-      required(path.label, { message: 'Give the vehicle a name' });
-      maxLength(path.label, 80, { message: 'Up to 80 characters' });
+      required(path.label);
+      maxLength(path.label, 80);
 
-      required(path.plate, { message: 'Plate is required' });
-      minLength(path.plate, 3, { message: '3–20 characters' });
-      maxLength(path.plate, 20, { message: '3–20 characters' });
+      required(path.plate);
+      minLength(path.plate, 3);
+      maxLength(path.plate, 20);
 
-      required(path.payload_kg, { message: 'Payload is required' });
-      min(path.payload_kg, 1, { message: 'At least 1 kg' });
-      max(path.payload_kg, 60000, { message: 'Up to 60 000 kg' });
+      required(path.payload_kg);
+      min(path.payload_kg, 1);
+      max(path.payload_kg, 60000);
     },
     {
       submission: {
         action: async (): Promise<TreeValidationResult> => {
-          this.error.set(null);
+          this.errorKey.set(null);
+          this.serverMessage.set(null);
           const editingId = this.editingId();
           const payload = this.buildPayload();
 
           try {
             if (editingId === null) {
               await firstValueFrom(this.fleetService.create(payload));
-              this.notify('Vehicle added to your fleet.');
+              this.notify('vehicles.added');
             } else {
               await firstValueFrom(this.fleetService.update(editingId, payload));
-              this.notify('Vehicle updated.');
+              this.notify('vehicles.updated');
             }
             this.resetForm();
             this.reload();
           } catch (error: unknown) {
-            this.error.set(apiErrorMessage(error, 'Could not save the vehicle.'));
+            this.serverMessage.set(
+              apiErrorMessage(error, this.transloco.translate('errors.vehicleSaveFailed')),
+            );
           }
           return undefined;
         },
@@ -139,23 +151,9 @@ export class VehiclesComponent implements OnInit {
     this.reload();
   }
 
-  protected optionLabel(options: OptionItem[], value: string | undefined): string {
-    if (!value) {
-      return '—';
-    }
-    return options.find((option) => option.value === value)?.label ?? value.replace(/_/g, ' ');
-  }
-
-  protected vehicleTypeLabel(value: string): string {
-    return this.optionLabel(this.vehicleTypes(), value);
-  }
-
-  protected bodyTypeLabel(value: string): string {
-    return this.optionLabel(this.bodyTypes(), value);
-  }
-
   protected edit(vehicle: Vehicle): void {
-    this.error.set(null);
+    this.errorKey.set(null);
+    this.serverMessage.set(null);
     this.editingId.set(vehicle.id);
     this.model.set({
       label: vehicle.label,
@@ -178,14 +176,22 @@ export class VehiclesComponent implements OnInit {
     this.resetForm();
   }
 
+  /** Numbers follow the active language: 24500 → "24,500" (en) / "24 500" (ru). */
+  protected numberLabel(value: number, fractionDigits = 0): string {
+    return formatNumber(value, this.language(), fractionDigits);
+  }
+
   protected async remove(vehicle: Vehicle): Promise<void> {
     const confirmed = await firstValueFrom(
       this.dialog
         .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
           data: {
-            title: 'Remove vehicle',
-            message: `Remove ${vehicle.label} (${vehicle.plate}) from your fleet?`,
-            confirmLabel: 'Remove',
+            title: this.transloco.translate('vehicles.removeTitle'),
+            message: this.transloco.translate('vehicles.removeMessage', {
+              label: vehicle.label,
+              plate: vehicle.plate,
+            }),
+            confirmLabel: this.transloco.translate('actions.remove'),
           },
         })
         .afterClosed(),
@@ -195,22 +201,25 @@ export class VehiclesComponent implements OnInit {
       return;
     }
 
-    this.error.set(null);
+    this.errorKey.set(null);
+    this.serverMessage.set(null);
     this.fleetService.remove(vehicle.id).subscribe({
       next: () => {
-        this.notify('Vehicle removed.');
+        this.notify('vehicles.removed');
         if (this.editingId() === vehicle.id) {
           this.resetForm();
         }
         this.reload();
       },
       error: (error: unknown) =>
-        this.error.set(apiErrorMessage(error, 'Could not remove the vehicle.')),
+        this.serverMessage.set(
+          apiErrorMessage(error, this.transloco.translate('errors.vehicleRemoveFailed')),
+        ),
     });
   }
 
-  private notify(message: string): void {
-    this.snackBar.open(message, 'Dismiss', { duration: 3000 });
+  private notify(key: string): void {
+    this.snackBar.open(this.transloco.translate(key), undefined, { duration: 3000 });
   }
 
   private buildPayload(): VehicleInput {
@@ -244,7 +253,9 @@ export class VehiclesComponent implements OnInit {
       },
       error: (error: unknown) => {
         this.loading.set(false);
-        this.error.set(apiErrorMessage(error, 'Could not load your fleet.'));
+        this.serverMessage.set(
+          apiErrorMessage(error, this.transloco.translate('errors.fleetLoadFailed')),
+        );
       },
     });
   }

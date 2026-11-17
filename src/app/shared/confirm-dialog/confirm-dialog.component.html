@@ -4,9 +4,9 @@
   <p>{{ data.message }}</p>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-  <button mat-button type="button" [mat-dialog-close]="false">Cancel</button>
+<mat-dialog-actions align="end" *transloco="let t">
+  <button mat-button type="button" [mat-dialog-close]="false">{{ t('actions.cancel') }}</button>
   <button mat-flat-button type="button" [mat-dialog-close]="true" cdkFocusInitial>
-    {{ data.confirmLabel ?? 'Confirm' }}
+    {{ data.confirmLabel ?? t('actions.save') }}
   </button>
 </mat-dialog-actions>

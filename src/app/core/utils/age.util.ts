@@ -2,6 +2,9 @@
 export const MIN_DRIVER_AGE = 18;
 export const MAX_DRIVER_AGE = 100;
 
+/** Machine-readable reasons a date of birth is rejected; translated in form-error.util.ts. */
+export type DriverAgeIssue = 'dateInvalid' | 'ageFuture' | 'ageTooYoung' | 'ageTooOld';
+
 /** Whole years between an ISO date (yyyy-mm-dd) and today, or null if unparseable. */
 export function yearsSince(isoDate: string, today: Date = new Date()): number | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate.trim());
@@ -24,24 +27,24 @@ export function yearsSince(isoDate: string, today: Date = new Date()): number | 
   return age;
 }
 
-/** Returns a validation message for a date of birth, or null when it is acceptable. */
-export function validateDriverAge(isoDate: string): string | null {
+/** Returns why a date of birth is unacceptable, or null when it passes. */
+export function validateDriverAge(isoDate: string): DriverAgeIssue | null {
   if (!isoDate) {
     return null; // emptiness is reported by the required rule
   }
 
   const age = yearsSince(isoDate);
   if (age === null) {
-    return 'Enter a valid date';
+    return 'dateInvalid';
   }
   if (age < 0) {
-    return 'Date of birth cannot be in the future';
+    return 'ageFuture';
   }
   if (age < MIN_DRIVER_AGE) {
-    return `Drivers must be at least ${MIN_DRIVER_AGE}`;
+    return 'ageTooYoung';
   }
   if (age > MAX_DRIVER_AGE) {
-    return `Drivers must be at most ${MAX_DRIVER_AGE}`;
+    return 'ageTooOld';
   }
   return null;
 }

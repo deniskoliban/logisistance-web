@@ -1,4 +1,4 @@
-<div class="auth-shell">
+<div class="auth-shell" *transloco="let t">
   <mat-card appearance="outlined" class="auth-card">
     @if (loginForm().submitting()) {
       <mat-progress-bar mode="indeterminate" />
@@ -8,23 +8,23 @@
       <header class="auth-hero">
         <span class="brand-mark">LI</span>
         <div>
-          <h1>Sign in</h1>
-          <p class="auth-hero-sub">Your fleet, your loads — one place.</p>
+          <h1>{{ t('auth.signInTitle') }}</h1>
+          <p class="auth-hero-sub">{{ t('auth.subtitle') }}</p>
         </div>
       </header>
 
       <form [formRoot]="loginForm" class="stack">
         <mat-form-field appearance="outline">
-          <mat-label>Email</mat-label>
+          <mat-label>{{ t('fields.email') }}</mat-label>
           <input matInput type="email" [formField]="loginForm.email" autocomplete="email" />
           <mat-icon matPrefix>mail</mat-icon>
-          @if (errorOf(loginForm.email); as message) {
+          @if (errorOf(loginForm.email, t); as message) {
             <mat-error>{{ message }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Password</mat-label>
+          <mat-label>{{ t('fields.password') }}</mat-label>
           <input
             matInput
             type="password"
@@ -32,12 +32,12 @@
             autocomplete="current-password"
           />
           <mat-icon matPrefix>lock</mat-icon>
-          @if (errorOf(loginForm.password); as message) {
+          @if (errorOf(loginForm.password, t); as message) {
             <mat-error>{{ message }}</mat-error>
           }
         </mat-form-field>
 
-        @if (error(); as message) {
+        @if (serverMessage(); as message) {
           <p class="form-error">{{ message }}</p>
         }
 
@@ -47,11 +47,13 @@
           class="submit-button"
           [disabled]="loginForm().submitting()"
         >
-          Sign in
+          {{ t('auth.signInButton') }}
         </button>
       </form>
 
-      <p class="auth-alt">New here? <a routerLink="/register">Create an account</a></p>
+      <p class="auth-alt">
+        {{ t('auth.newHere') }} <a routerLink="/register">{{ t('auth.createAccountLink') }}</a>
+      </p>
     </mat-card-content>
   </mat-card>
 </div>

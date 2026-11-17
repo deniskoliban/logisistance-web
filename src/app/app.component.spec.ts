@@ -1,16 +1,26 @@
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideTransloco } from '@jsverse/transloco';
 
 import { AppComponent } from './app.component';
+import { BundledTranslocoLoader } from './core/i18n/transloco-json.loader';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     localStorage.clear();
     document.documentElement.className = '';
+
     await TestBed.configureTestingModule({
       imports: [AppComponent],
-      providers: [provideHttpClient(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideRouter([]),
+        provideTransloco({
+          config: { availableLangs: ['en', 'ru'], defaultLang: 'en' },
+          loader: BundledTranslocoLoader,
+        }),
+      ],
     }).compileComponents();
   });
 

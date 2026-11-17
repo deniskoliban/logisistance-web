@@ -7,12 +7,14 @@ The API lives in a separate repository:
 [`logisistance-api`](https://github.com/deniskoliban/logisistance-api) (FastAPI).
 
 **Status:** v0.1 — sign up / sign in, driver profile and vehicle profiles, on Angular Material 3
-with light and dark themes, Signal Forms and a responsive layout for phone, tablet and desktop.
+with light and dark themes, Signal Forms, English/Russian localisation and a responsive layout for
+phone, tablet and desktop.
 
 ## Stack
 
 Angular 22 (standalone components, signals, zoneless) · Angular Material 22 + CDK ·
-Signal Forms (`@angular/forms/signals`) · TypeScript 6 · Vitest (via `@angular/cli`)
+Signal Forms (`@angular/forms/signals`) · Transloco 9 (i18n) · TypeScript 6 · Vitest (via
+`@angular/cli`)
 
 ## Run
 
@@ -26,9 +28,33 @@ be running — see the
 [API quick start](https://github.com/deniskoliban/logisistance-api#run).
 
 ```powershell
-npm test           # 6 unit tests
+npm test           # 32 unit tests
 npm run build      # production bundle
 ```
+
+## Localisation (en / ru)
+
+Transloco handles every UI string; switching language is instant, no reload.
+
+- Dictionaries live in `src/app/i18n/en.json` / `ru.json` and are **bundled** through
+  `BundledTranslocoLoader` (two small locales do not warrant an HTTP round trip, and it removes a
+  flash of untranslated UI). For many locales or per-feature scopes, swap that one class for an
+  HTTP loader — nothing else changes.
+- `LanguageService` (`core/services/language.service.ts`) mirrors `ThemeService`: it sets
+  `TranslocoService.setActiveLang`, updates `<html lang>` and remembers the choice in
+  `localStorage` (`logisistance.lang`). The first visit follows `navigator.languages`.
+- The toolbar has a language menu next to the theme toggle, on every screen.
+- **Validation messages are translated, not frozen.** Validators only produce an error *kind*
+  (`required`, `minLength`, `ageTooYoung`, …) and `errorOf(field, t)` maps it to a dictionary entry,
+  so an error already on screen switches language with the rest of the UI.
+- Plural forms use CLDR through `Intl.PluralRules` (`core/i18n/plural.util.ts`): English needs
+  `one/other`, Russian needs `one/few/many` — `{{ t(pluralKey('vehicles.count', lang, n), {count: n}) }}`.
+- Numbers and dates go through `Intl.NumberFormat` / `Intl.DateTimeFormat`, so `24500` renders as
+  `24,500` in English and `24 500` in Russian.
+- Country names are **not** a dictionary: they come from `Intl.DisplayNames` keyed by ISO code, so
+  the list is localised without touching the API.
+- Known gap: messages coming *from the API* stay English (`detail` strings), which was a deliberate
+  decision — translating server errors needs stable error codes first.
 
 ## Theming
 
@@ -65,9 +91,9 @@ protected readonly loginForm = form(this.model, (path) => {
 ```html
 <form [formRoot]="loginForm">
   <mat-form-field appearance="outline">
-    <mat-label>Email</mat-label>
+    <mat-label>{{ t('fields.email') }}</mat-label>
     <input matInput type="email" [formField]="loginForm.email" />
-    @if (errorOf(loginForm.email); as message) {
+    @if (errorOf(loginForm.email, t); as message) {
       <mat-error>{{ message }}</mat-error>
     }
   </mat-form-field>
@@ -81,12 +107,20 @@ Conventions that follow from it:
   the native attributes are all derived from one place.
 - `[formRoot]` on `<form>` handles `submit` (also on Enter) and runs `submission.action` only when
   valid; the pending flag is `form().submitting()`.
-- `errorOf(field)` (`core/utils/form-error.util.ts`) returns the first message once a field is
-  touched and invalid.
+- `errorOf(field, t)` (`core/utils/form-error.util.ts`) returns the first message once a field is
+  touched and invalid — translated from the error *kind*, never from a stored string.
 - After a successful create, reset with `model.set(...)` **and** `form().reset()` — the second call
   clears `touched`/`dirty`, otherwise the emptied form immediately flashes validation errors.
 - Do **not** put `min`/`max` attributes on a `[formField]` input: Angular rejects it (NG8022). The
   bounds come from `min()`/`max()` in the schema. `step` and `type` are fine.
+
+### Localised text
+
+- No literal UI text in templates: add the key to **both** `i18n/en.json` and `i18n/ru.json`.
+  `dictionaries.spec.ts` fails the build if the two files drift apart (plural categories excepted).
+- Counted nouns go through `pluralKey(...)` + `Intl.PluralRules`, never through `count === 1 ? … : …`.
+- Numbers go through `formatNumber()` and dates through `formatDate()`; a raw number in a template is
+  a bug in the Russian UI.
 
 ### Domain fields with a rule behind them
 
@@ -153,19 +187,15 @@ src/
 
 ## Screens
 
-Light and dark come from the same markup:
+The same markup in both languages — only the dictionaries change:
 
-| Fleet (light) | Fleet (dark) |
+| Fleet (English) | Fleet (Russian) |
 | --- | --- |
-| ![Fleet light](docs/screenshots/fleet-light.png) | ![Fleet dark](docs/screenshots/fleet-dark.png) |
+| ![Fleet English](docs/screenshots/fleet-en.png) | ![Fleet Russian](docs/screenshots/fleet-ru.png) |
 
-| Sign in | Registration | Profile |
-| --- | --- | --- |
-| ![Sign in](docs/screenshots/login-light.png) | ![Registration](docs/screenshots/register-light.png) | ![Profile](docs/screenshots/profile-light.png) |
-
-| Register on a 360 px phone | Fleet on a 360 px phone |
+| Profile (Russian) | Registration on a 360 px phone |
 | --- | --- |
-| ![Register mobile](docs/screenshots/register-mobile.png) | ![Fleet mobile](docs/screenshots/fleet-mobile.png) |
+| ![Profile Russian](docs/screenshots/profile-ru.png) | ![Register mobile](docs/screenshots/register-mobile.png) |
 
 ## Behaviour
 
@@ -173,8 +203,8 @@ Light and dark come from the same markup:
   signs the user in immediately. Age is never typed in — it is derived by the API from the date of
   birth, so it cannot drift. The form blocks under-18 and future dates with a message from the same
   schema rule the API enforces.
-- Country is a searchable autocomplete: typing `pol` narrows the list to Poland, matched on name
-  substring or exact code. The API stores ISO codes, the field shows readable names
+- Country is a searchable autocomplete: typing `pol` (or `Пол` in Russian) narrows the list, matched
+  on name substring or exact code. The API stores ISO codes, the field shows localised names
   (`core/utils/country.util.ts` maps between them).
 - The JWT is attached by a functional interceptor to every `/api/...` request and survives a page
   reload through `localStorage`. A `401` from the API clears the session and returns to `/login`, so

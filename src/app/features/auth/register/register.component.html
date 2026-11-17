@@ -1,4 +1,4 @@
-<div class="auth-shell">
+<div class="auth-shell" *transloco="let t">
   <mat-card appearance="outlined" class="auth-card auth-card-wide">
     @if (registerForm().submitting()) {
       <mat-progress-bar mode="indeterminate" />
@@ -8,34 +8,34 @@
       <header class="auth-hero">
         <span class="brand-mark">LI</span>
         <div>
-          <h1>Create your account</h1>
-          <p class="auth-hero-sub">Your fleet, your loads — one place.</p>
+          <h1>{{ t('auth.createTitle') }}</h1>
+          <p class="auth-hero-sub">{{ t('auth.subtitle') }}</p>
         </div>
       </header>
 
       <form [formRoot]="registerForm" class="stack">
         <section class="form-section">
-          <h2 class="form-section-label">Driver</h2>
+          <h2 class="form-section-label">{{ t('register.sectionDriver') }}</h2>
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>Full name</mat-label>
+              <mat-label>{{ t('fields.fullName') }}</mat-label>
               <input matInput type="text" [formField]="registerForm.full_name" autocomplete="name" />
-              @if (errorOf(registerForm.full_name); as message) {
+              @if (errorOf(registerForm.full_name, t); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>Date of birth</mat-label>
+              <mat-label>{{ t('fields.dateOfBirth') }}</mat-label>
               <input
                 matInput
                 type="date"
                 [formField]="registerForm.date_of_birth"
                 autocomplete="bday"
               />
-              <mat-hint>18 or older</mat-hint>
-              @if (errorOf(registerForm.date_of_birth); as message) {
+              <mat-hint>{{ t('hints.age18') }}</mat-hint>
+              @if (errorOf(registerForm.date_of_birth, t); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
@@ -45,19 +45,19 @@
         <mat-divider />
 
         <section class="form-section">
-          <h2 class="form-section-label">Sign-in</h2>
+          <h2 class="form-section-label">{{ t('register.sectionSignIn') }}</h2>
 
           <mat-form-field appearance="outline">
-            <mat-label>Email</mat-label>
+            <mat-label>{{ t('fields.email') }}</mat-label>
             <input matInput type="email" [formField]="registerForm.email" autocomplete="email" />
             <mat-icon matPrefix>mail</mat-icon>
-            @if (errorOf(registerForm.email); as message) {
+            @if (errorOf(registerForm.email, t); as message) {
               <mat-error>{{ message }}</mat-error>
             }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Password</mat-label>
+            <mat-label>{{ t('fields.password') }}</mat-label>
             <input
               matInput
               type="password"
@@ -65,8 +65,8 @@
               autocomplete="new-password"
             />
             <mat-icon matPrefix>lock</mat-icon>
-            <mat-hint>At least 8 characters</mat-hint>
-            @if (errorOf(registerForm.password); as message) {
+            <mat-hint>{{ t('hints.password8') }}</mat-hint>
+            @if (errorOf(registerForm.password, t); as message) {
               <mat-error>{{ message }}</mat-error>
             }
           </mat-form-field>
@@ -75,51 +75,58 @@
         <mat-divider />
 
         <section class="form-section">
-          <h2 class="form-section-label">Where you drive from</h2>
+          <h2 class="form-section-label">{{ t('register.sectionBase') }}</h2>
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>Country</mat-label>
+              <mat-label>{{ t('fields.country') }}</mat-label>
               <input
                 matInput
                 type="text"
                 [formField]="registerForm.country"
                 [matAutocomplete]="countryAutocomplete"
-                placeholder="Start typing…"
+                [placeholder]="t('hints.typeToSearch')"
                 autocomplete="country-name"
+                (input)="onCountryTyped()"
               />
               <mat-icon matPrefix>public</mat-icon>
-              <mat-autocomplete #countryAutocomplete="matAutocomplete">
+              <mat-autocomplete
+                #countryAutocomplete="matAutocomplete"
+                (optionSelected)="onCountrySelected($event.option.value)"
+              >
                 @for (country of filteredCountries(); track country.code) {
                   <mat-option [value]="country.name">
                     {{ country.name }}
                     <span class="option-code">{{ country.code }}</span>
                   </mat-option>
                 } @empty {
-                  <mat-option disabled>No country matches</mat-option>
+                  <mat-option disabled>{{ t('common.noCountryMatch') }}</mat-option>
                 }
               </mat-autocomplete>
-              @if (errorOf(registerForm.country); as message) {
+              @if (errorOf(registerForm.country, t); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>City</mat-label>
+              <mat-label>{{ t('fields.city') }}</mat-label>
               <input
                 matInput
                 type="text"
                 [formField]="registerForm.city"
                 autocomplete="address-level2"
               />
-              @if (errorOf(registerForm.city); as message) {
+              @if (errorOf(registerForm.city, t); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
           </div>
         </section>
 
-        @if (error(); as message) {
+        @if (errorKey(); as key) {
+          <p class="form-error">{{ t(key) }}</p>
+        }
+        @if (serverMessage(); as message) {
           <p class="form-error">{{ message }}</p>
         }
 
@@ -129,11 +136,13 @@
           class="submit-button"
           [disabled]="registerForm().submitting()"
         >
-          Create account
+          {{ t('auth.createButton') }}
         </button>
       </form>
 
-      <p class="auth-alt">Already registered? <a routerLink="/login">Sign in</a></p>
+      <p class="auth-alt">
+        {{ t('auth.alreadyRegistered') }} <a routerLink="/login">{{ t('auth.signInLink') }}</a>
+      </p>
     </mat-card-content>
   </mat-card>
 </div>

@@ -149,6 +149,13 @@ body {
   gap: 12px;
 }
 
+/* Number of columns follows the available width, so long labels in any language fit. */
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
 .full-width {
   width: 100%;
 }
@@ -177,6 +184,13 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+/* Material gives card content no top padding; a floating label needs ~8px of headroom or the
+   first field's label overlaps the card title above it. The selector targets our own form,
+   because Material's own card rule outranks a plain `.mat-mdc-card-content`. */
+.mat-mdc-card-content > form.stack {
+  padding-top: 8px;
 }
 
 /* ---------- auth screens ---------- */
@@ -248,6 +262,15 @@ body {
   padding-left: 16px;
   color: var(--mat-sys-on-surface-variant);
   font: var(--mat-sys-label-small);
+}
+
+/* Language menu: the active language gets a check on the far right. */
+.mat-mdc-menu-panel .mat-mdc-menu-item {
+  justify-content: space-between;
+}
+
+.menu-check {
+  color: var(--mat-sys-primary);
 }
 
 .auth-card-wide {
@@ -359,6 +382,15 @@ body {
   .app-nav a {
     padding: 0 10px;
     min-width: 0;
+  }
+
+  /* Labels would push the toolbar wider than a phone screen; icons stay. */
+  .nav-label {
+    display: none;
+  }
+
+  .app-nav mat-icon {
+    margin: 0;
   }
 
   .grid-2,

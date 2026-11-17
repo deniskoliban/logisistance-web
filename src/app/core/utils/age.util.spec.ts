@@ -33,16 +33,20 @@ describe('validateDriverAge', () => {
     expect(validateDriverAge(isoYearsFromToday(18))).toBeNull();
   });
 
-  it('rejects under-18 drivers', () => {
-    expect(validateDriverAge(isoYearsFromToday(10))).toContain('at least 18');
+  it('reports under-18 drivers', () => {
+    expect(validateDriverAge(isoYearsFromToday(10))).toBe('ageTooYoung');
   });
 
-  it('rejects future dates of birth', () => {
-    expect(validateDriverAge(isoYearsFromToday(-1))).toContain('future');
+  it('reports future dates of birth', () => {
+    expect(validateDriverAge(isoYearsFromToday(-1))).toBe('ageFuture');
   });
 
-  it('rejects implausibly old drivers', () => {
-    expect(validateDriverAge(isoYearsFromToday(120))).toContain('at most 100');
+  it('reports implausibly old drivers', () => {
+    expect(validateDriverAge(isoYearsFromToday(120))).toBe('ageTooOld');
+  });
+
+  it('reports unparseable dates', () => {
+    expect(validateDriverAge('1988-02-31')).toBe('dateInvalid');
   });
 
   it('leaves empty values to the required rule', () => {

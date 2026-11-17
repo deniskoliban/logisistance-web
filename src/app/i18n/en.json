@@ -1,0 +1,155 @@
+{
+  "nav": {
+    "fleet": "Fleet",
+    "profile": "Profile"
+  },
+  "actions": {
+    "signOut": "Sign out",
+    "save": "Save changes",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "remove": "Remove",
+    "addVehicle": "Add vehicle"
+  },
+  "theme": {
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme",
+    "toggle": "Toggle colour theme"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ru": "Русский"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "subtitle": "Your fleet, your loads — one place.",
+    "signInButton": "Sign in",
+    "createTitle": "Create your account",
+    "createButton": "Create account",
+    "newHere": "New here?",
+    "createAccountLink": "Create an account",
+    "alreadyRegistered": "Already registered?",
+    "signInLink": "Sign in"
+  },
+  "register": {
+    "sectionDriver": "Driver",
+    "sectionSignIn": "Sign-in",
+    "sectionBase": "Where you drive from"
+  },
+  "fields": {
+    "fullName": "Full name",
+    "dateOfBirth": "Date of birth",
+    "email": "Email",
+    "password": "Password",
+    "country": "Country",
+    "city": "City",
+    "name": "Name",
+    "plate": "Plate",
+    "vehicleType": "Vehicle type",
+    "bodyType": "Body type",
+    "payload": "Payload (kg)",
+    "volume": "Volume (m³)",
+    "range": "Range (km)",
+    "length": "Length (m)",
+    "width": "Width (m)",
+    "height": "Height (m)"
+  },
+  "hints": {
+    "age18": "18 or older",
+    "password8": "At least 8 characters",
+    "typeToSearch": "Start typing…"
+  },
+  "errors": {
+    "required": "This field is required",
+    "email": "Enter a valid email address",
+    "minLength": "At least {{min}} characters",
+    "maxLength": "At most {{max}} characters",
+    "min": "Must be at least {{min}}",
+    "max": "Must be at most {{max}}",
+    "dateInvalid": "Enter a valid date",
+    "ageFuture": "Date of birth cannot be in the future",
+    "ageTooYoung": "Drivers must be at least {{min}}",
+    "ageTooOld": "Drivers must be at most {{max}}",
+    "countryUnknown": "Pick a country from the list",
+    "signInFailed": "Could not sign in.",
+    "registerFailed": "Could not create the account.",
+    "countriesFailed": "Could not load the country list.",
+    "profileSaveFailed": "Could not save the profile.",
+    "vehicleSaveFailed": "Could not save the vehicle.",
+    "vehicleRemoveFailed": "Could not remove the vehicle.",
+    "fleetLoadFailed": "Could not load your fleet."
+  },
+  "profile": {
+    "title": "Driver profile",
+    "subtitle": "The basics loads and routes will be matched against.",
+    "accountDetails": "Account details",
+    "snapshot": "Snapshot",
+    "driver": "Driver",
+    "base": "Base",
+    "memberSince": "Member since",
+    "years": {
+      "one": "{{count}} year",
+      "other": "{{count}} years"
+    },
+    "saved": "Profile saved.",
+    "roadmapHint": "Next steps in the roadmap: freight search, route planning and backhaul matching will use these details plus your vehicle data."
+  },
+  "vehicles": {
+    "title": "My fleet",
+    "subtitle": "Payload and cargo dimensions decide which loads actually fit your vehicle.",
+    "count": {
+      "one": "{{count}} vehicle",
+      "other": "{{count}} vehicles"
+    },
+    "addTitle": "Add a vehicle",
+    "editTitle": "Edit vehicle",
+    "dimensions": "Dimensions (optional)",
+    "overallVehicle": "Overall vehicle",
+    "cargoCompartment": "Cargo compartment",
+    "registered": "Registered vehicles",
+    "empty": "No vehicles yet. Add your truck or van to start matching loads to it.",
+    "facts": {
+      "type": "Type",
+      "body": "Body",
+      "payload": "Payload",
+      "volume": "Volume",
+      "cargo": "Cargo L×W×H",
+      "range": "Range"
+    },
+    "added": "Vehicle added to your fleet.",
+    "updated": "Vehicle updated.",
+    "removed": "Vehicle removed.",
+    "removeTitle": "Remove vehicle",
+    "removeMessage": "Remove {{label}} ({{plate}}) from your fleet?",
+    "weights": {
+      "kg": "{{value}} kg",
+      "km": "{{value}} km",
+      "m3": "{{value}} m³",
+      "dimensions": "{{length}} × {{width}} × {{height}} m"
+    }
+  },
+  "types": {
+    "vehicle": {
+      "van": "Van",
+      "rigid_truck": "Rigid truck",
+      "articulated_truck": "Articulated truck",
+      "tractor_unit": "Tractor unit",
+      "trailer": "Trailer"
+    },
+    "body": {
+      "box": "Box",
+      "curtain_side": "Curtain side",
+      "refrigerated": "Refrigerated",
+      "flatbed": "Flatbed",
+      "tipper": "Tipper",
+      "tanker": "Tanker",
+      "other": "Other"
+    }
+  },
+  "common": {
+    "noCountryMatch": "No country matches",
+    "notProvided": "—"
+  }
+}

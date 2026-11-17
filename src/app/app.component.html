@@ -1,4 +1,4 @@
-<mat-toolbar class="app-toolbar">
+<mat-toolbar class="app-toolbar" *transloco="let t">
   <a class="brand" routerLink="/vehicles">
     <span class="brand-mark">LI</span>
     <span class="brand-name">logisistance</span>
@@ -6,8 +6,14 @@
 
   @if (isAuthenticated()) {
     <nav class="app-nav">
-      <a mat-button routerLink="/vehicles" routerLinkActive="active-link">Fleet</a>
-      <a mat-button routerLink="/profile" routerLinkActive="active-link">Profile</a>
+      <a mat-button routerLink="/vehicles" routerLinkActive="active-link">
+        <mat-icon>local_shipping</mat-icon>
+        <span class="nav-label">{{ t('nav.fleet') }}</span>
+      </a>
+      <a mat-button routerLink="/profile" routerLinkActive="active-link">
+        <mat-icon>person</mat-icon>
+        <span class="nav-label">{{ t('nav.profile') }}</span>
+      </a>
     </nav>
   }
 
@@ -16,9 +22,29 @@
   <button
     mat-icon-button
     type="button"
+    [matMenuTriggerFor]="languageMenu"
+    [matTooltip]="t('language.label')"
+    [attr.aria-label]="t('language.label')"
+  >
+    <mat-icon>translate</mat-icon>
+  </button>
+  <mat-menu #languageMenu="matMenu">
+    @for (code of languages; track code) {
+      <button mat-menu-item type="button" (click)="setLanguage(code)">
+        <span>{{ t('language.' + code) }}</span>
+        @if (language() === code) {
+          <mat-icon class="menu-check">check</mat-icon>
+        }
+      </button>
+    }
+  </mat-menu>
+
+  <button
+    mat-icon-button
+    type="button"
     (click)="toggleTheme()"
-    [matTooltip]="isDark() ? 'Switch to light theme' : 'Switch to dark theme'"
-    aria-label="Toggle colour theme"
+    [matTooltip]="isDark() ? t('theme.toLight') : t('theme.toDark')"
+    [attr.aria-label]="t('theme.toggle')"
   >
     <mat-icon>{{ isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
   </button>
@@ -27,9 +53,14 @@
     @if (user(); as current) {
       <span class="user-name">{{ current.full_name }}</span>
     }
-    <button mat-stroked-button type="button" (click)="logout()" aria-label="Sign out">
+    <button
+      mat-stroked-button
+      type="button"
+      (click)="logout()"
+      [attr.aria-label]="t('actions.signOut')"
+    >
       <mat-icon>logout</mat-icon>
-      <span class="btn-label">Sign out</span>
+      <span class="btn-label">{{ t('actions.signOut') }}</span>
     </button>
   }
 </mat-toolbar>
