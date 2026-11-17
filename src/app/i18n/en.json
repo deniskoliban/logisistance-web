@@ -36,14 +36,15 @@
   "register": {
     "sectionDriver": "Driver",
     "sectionSignIn": "Sign-in",
-    "sectionBase": "Where you drive from"
+    "sectionCountries": "Countries"
   },
   "fields": {
     "fullName": "Full name",
     "dateOfBirth": "Date of birth",
     "email": "Email",
     "password": "Password",
-    "country": "Country",
+    "countryOfResidence": "Country of residence",
+    "companyCountry": "Company registered in",
     "city": "City",
     "name": "Name",
     "plate": "Plate",

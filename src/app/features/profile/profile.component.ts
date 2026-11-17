@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import {
   FormField,
   FormRoot,
@@ -9,36 +9,34 @@ import {
   required,
   validate,
 } from '@angular/forms/signals';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { FleetService } from '../../core/fleet/fleet.service';
-import { pluralKey } from '../../core/i18n/plural.util';
 import { validateDriverAge } from '../../core/utils/age.util';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
-import {
-  countryCodeFor,
-  countryName,
-  filterCountries,
-  localizedCountryOptions,
-} from '../../core/utils/country.util';
-import { formatDate } from '../../core/utils/date.util';
+import { countryName } from '../../core/utils/country.util';
+import { formatDate, fromIsoDate, toIsoDate } from '../../core/utils/date.util';
 import { errorOf } from '../../core/utils/form-error.util';
+import { CountryFieldComponent } from '../../shared/country-field/country-field.component';
+import { FormErrorPipe } from '../../shared/pipes/form-error.pipe';
+import { PluralPipe } from '../../shared/pipes/plural.pipe';
 
 interface ProfileModel {
   full_name: string;
-  date_of_birth: string;
-  /** Country name in the active language; the ISO code is tracked separately. */
+  date_of_birth: Date | null;
+  /** Country of residence, shown as a localised name. */
   country: string;
+  /** Country where the company is registered, shown as a localised name. */
+  company_country: string;
   city: string;
 }
 
@@ -48,45 +46,51 @@ interface ProfileModel {
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatAutocompleteModule,
+    MatDatepickerModule,
     MatButtonModule,
     MatIconModule,
     MatListModule,
     FormRoot,
     FormField,
-    TranslocoDirective,
+    TranslocoPipe,
+    FormErrorPipe,
+    PluralPipe,
+    CountryFieldComponent,
   ],
   templateUrl: './profile.component.html',
 })
 export class ProfileComponent implements OnInit {
   private readonly authService = inject(AuthService);
-  private readonly fleetService = inject(FleetService);
   private readonly snackBar = inject(MatSnackBar);
   private readonly transloco = inject(TranslocoService);
 
   protected readonly user = this.authService.user;
   protected readonly language = this.transloco.activeLang;
 
-  protected readonly countryCodes = signal<string[]>([]);
-  protected readonly countryOptions = computed(() =>
-    localizedCountryOptions(this.countryCodes(), this.transloco.activeLang()),
-  );
-  protected readonly selectedCountryCode = signal<string | null>(null);
+  protected readonly residenceCode = signal<string | null>(null);
+  protected readonly companyCode = signal<string | null>(null);
 
   protected readonly errorKey = signal<string | null>(null);
   protected readonly serverMessage = signal<string | null>(null);
   protected readonly errorOf = errorOf;
 
+  /** Snapshot values are derived signals, so templates never call methods. */
+  protected readonly birthDateLabel = computed(() =>
+    this.formatIso(this.user()?.date_of_birth),
+  );
+  protected readonly residenceLabel = computed(() => this.localiseCountry(this.user()?.country));
+  protected readonly companyLabel = computed(() =>
+    this.localiseCountry(this.user()?.company_country),
+  );
+  protected readonly memberSince = computed(() => this.formatIso(this.user()?.created_at?.slice(0, 10)));
+
   protected readonly model = signal<ProfileModel>({
     full_name: this.authService.user()?.full_name ?? '',
-    date_of_birth: this.authService.user()?.date_of_birth ?? '',
+    date_of_birth: fromIsoDate(this.authService.user()?.date_of_birth ?? ''),
     country: '',
+    company_country: '',
     city: this.authService.user()?.city ?? '',
   });
-
-  protected readonly filteredCountries = computed(() =>
-    filterCountries(this.countryOptions(), this.model().country),
-  );
 
   protected readonly profileForm = form(
     this.model,
@@ -97,13 +101,19 @@ export class ProfileComponent implements OnInit {
 
       required(path.date_of_birth);
       validate(path.date_of_birth, ({ value }) => {
-        const issue = validateDriverAge(value());
+        const dateOfBirth = value();
+        const issue = dateOfBirth ? validateDriverAge(toIsoDate(dateOfBirth)) : null;
         return issue ? { kind: issue } : null;
       });
 
       required(path.country);
       validate(path.country, () =>
-        this.selectedCountryCode() ? null : { kind: 'countryUnknown' },
+        this.residenceCode() ? null : { kind: 'countryUnknown' },
+      );
+
+      required(path.company_country);
+      validate(path.company_country, () =>
+        this.companyCode() ? null : { kind: 'countryUnknown' },
       );
 
       required(path.city);
@@ -116,8 +126,11 @@ export class ProfileComponent implements OnInit {
           this.errorKey.set(null);
           this.serverMessage.set(null);
           const value = this.model();
-          const countryCode = this.selectedCountryCode();
-          if (!countryCode) {
+          const residence = this.residenceCode();
+          const company = this.companyCode();
+          const dateOfBirth = value.date_of_birth;
+
+          if (!residence || !company || !dateOfBirth) {
             this.errorKey.set('errors.countryUnknown');
             return undefined;
           }
@@ -126,8 +139,9 @@ export class ProfileComponent implements OnInit {
             await firstValueFrom(
               this.authService.updateProfile({
                 full_name: value.full_name,
-                date_of_birth: value.date_of_birth,
-                country: countryCode,
+                date_of_birth: toIsoDate(dateOfBirth),
+                country: residence,
+                company_country: company,
                 city: value.city,
               }),
             );
@@ -145,62 +159,20 @@ export class ProfileComponent implements OnInit {
     },
   );
 
-  constructor() {
-    // Keep the visible country name in step with the language (the chosen code never changes).
-    effect(() => {
-      const locale = this.transloco.activeLang();
-      const code = this.selectedCountryCode();
-      if (!code) {
-        return;
-      }
-      const name = countryName(code, locale);
-      if (name) {
-        this.model.update((model) => (model.country === name ? model : { ...model, country: name }));
-      }
-    });
-  }
-
   ngOnInit(): void {
-    this.selectedCountryCode.set(this.authService.user()?.country ?? null);
-
-    this.fleetService.countries().subscribe({
-      next: (countries) => this.countryCodes.set(countries.map((country) => country.code)),
-      error: () => this.errorKey.set('errors.countriesFailed'),
-    });
+    const user = this.authService.user();
+    this.residenceCode.set(user?.country ?? null);
+    this.companyCode.set(user?.company_country ?? null);
   }
 
-  protected onCountrySelected(name: string): void {
-    this.selectedCountryCode.set(countryCodeFor(this.countryOptions(), name));
-  }
-
-  protected onCountryTyped(): void {
-    this.selectedCountryCode.set(null);
-  }
-
-  protected birthDateLabel(): string {
-    const isoDate = this.user()?.date_of_birth;
+  private formatIso(isoDate: string | undefined): string {
     return isoDate ? formatDate(isoDate, this.language()) : '—';
   }
 
-  protected ageLabel(): string {
-    const age = this.user()?.age;
-    if (age === undefined) {
-      return '—';
-    }
-    return this.transloco.translate(pluralKey('profile.years', this.language(), age), {
-      count: age,
-    });
-  }
-
-  protected countryLabel(code: string | undefined): string {
+  private localiseCountry(code: string | undefined): string {
     if (!code) {
       return '—';
     }
     return countryName(code, this.language()) ?? code;
-  }
-
-  protected memberSince(): string {
-    const createdAt = this.user()?.created_at;
-    return createdAt ? formatDate(createdAt.slice(0, 10), this.language()) : '—';
   }
 }

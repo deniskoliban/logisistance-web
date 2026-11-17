@@ -20,19 +20,19 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom, forkJoin } from 'rxjs';
 
 import { FleetService } from '../../core/fleet/fleet.service';
-import { pluralKey } from '../../core/i18n/plural.util';
 import { BodyType, OptionItem, Vehicle, VehicleInput, VehicleType } from '../../core/models';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
-import { errorOf } from '../../core/utils/form-error.util';
-import { formatNumber } from '../../core/utils/number.util';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
 } from '../../shared/confirm-dialog/confirm-dialog.component';
+import { FormErrorPipe } from '../../shared/pipes/form-error.pipe';
+import { LocalizedNumberPipe } from '../../shared/pipes/localized-number.pipe';
+import { PluralPipe } from '../../shared/pipes/plural.pipe';
 
 interface VehicleModel {
   label: string;
@@ -79,7 +79,10 @@ const EMPTY_VEHICLE: VehicleModel = {
     MatProgressBarModule,
     FormRoot,
     FormField,
-    TranslocoDirective,
+    TranslocoPipe,
+    FormErrorPipe,
+    LocalizedNumberPipe,
+    PluralPipe,
   ],
   templateUrl: './vehicles.component.html',
 })
@@ -97,10 +100,6 @@ export class VehiclesComponent implements OnInit {
   protected readonly editingId = signal<number | null>(null);
   protected readonly errorKey = signal<string | null>(null);
   protected readonly serverMessage = signal<string | null>(null);
-
-  protected readonly language = this.transloco.activeLang;
-  protected readonly pluralKey = pluralKey;
-  protected readonly errorOf = errorOf;
 
   protected readonly model = signal<VehicleModel>({ ...EMPTY_VEHICLE });
 
@@ -174,11 +173,6 @@ export class VehiclesComponent implements OnInit {
 
   protected cancelEdit(): void {
     this.resetForm();
-  }
-
-  /** Numbers follow the active language: 24500 → "24,500" (en) / "24 500" (ru). */
-  protected numberLabel(value: number, fractionDigits = 0): string {
-    return formatNumber(value, this.language(), fractionDigits);
   }
 
   protected async remove(vehicle: Vehicle): Promise<void> {

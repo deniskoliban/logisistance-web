@@ -6,8 +6,10 @@ import {
   provideAppInitializer,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { provideTransloco } from '@jsverse/transloco';
+import { provideTransloco, TranslocoService } from '@jsverse/transloco';
+import { firstValueFrom } from 'rxjs';
 
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { BundledTranslocoLoader } from './core/i18n/transloco-json.loader';
@@ -19,6 +21,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes, withComponentInputBinding()),
     provideHttpClient(withInterceptors([authInterceptor])),
+    provideNativeDateAdapter(),
     provideTransloco({
       config: {
         availableLangs: ['en', 'ru'],
@@ -30,7 +33,13 @@ export const appConfig: ApplicationConfig = {
       },
       loader: BundledTranslocoLoader,
     }),
-    // Resolve the language before the first render so nothing flashes in the default locale.
-    provideAppInitializer(() => inject(LanguageService).initialize()),
+    // Resolve the language and load its dictionary before the first render, so no screen can
+    // flash raw keys or the default locale.
+    provideAppInitializer(() => {
+      const languageService = inject(LanguageService);
+      const transloco = inject(TranslocoService);
+      languageService.initialize();
+      return firstValueFrom(transloco.load(transloco.getActiveLang()));
+    }),
   ],
 };

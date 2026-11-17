@@ -1,18 +1,14 @@
-<section class="page" *transloco="let t">
+<section class="page">
   <header class="page-head">
     <div>
-      <h1>{{ t('vehicles.title') }}</h1>
-      <p>{{ t('vehicles.subtitle') }}</p>
+      <h1>{{ 'vehicles.title' | transloco }}</h1>
+      <p>{{ 'vehicles.subtitle' | transloco }}</p>
     </div>
-    <span class="identity-sub">
-      {{
-        t(pluralKey('vehicles.count', language(), vehicles().length), { count: vehicles().length })
-      }}
-    </span>
+    <span class="identity-sub">{{ 'vehicles.count' | plural: vehicles().length }}</span>
   </header>
 
   @if (errorKey(); as key) {
-    <p class="form-error">{{ t(key) }}</p>
+    <p class="form-error">{{ key | transloco }}</p>
   }
   @if (serverMessage(); as message) {
     <p class="form-error">{{ message }}</p>
@@ -22,7 +18,11 @@
     <mat-card appearance="outlined">
       <mat-card-header>
         <mat-card-title>
-          {{ editingId() === null ? t('vehicles.addTitle') : t('vehicles.editTitle') }}
+          @if (editingId() === null) {
+            {{ 'vehicles.addTitle' | transloco }}
+          } @else {
+            {{ 'vehicles.editTitle' | transloco }}
+          }
         </mat-card-title>
       </mat-card-header>
 
@@ -30,39 +30,43 @@
         <form [formRoot]="vehicleForm" class="stack">
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.name') }}</mat-label>
+              <mat-label>{{ 'fields.name' | transloco }}</mat-label>
               <input matInput type="text" [formField]="vehicleForm.label" placeholder="MAN TGX" />
-              @if (errorOf(vehicleForm.label, t); as message) {
-                <mat-error>{{ message }}</mat-error>
+              @let labelError = vehicleForm.label | formError;
+              @if (labelError) {
+                <mat-error>{{ labelError }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.plate') }}</mat-label>
+              <mat-label>{{ 'fields.plate' | transloco }}</mat-label>
               <input matInput type="text" [formField]="vehicleForm.plate" placeholder="WGM 12345" />
-              @if (errorOf(vehicleForm.plate, t); as message) {
-                <mat-error>{{ message }}</mat-error>
+              @let plateError = vehicleForm.plate | formError;
+              @if (plateError) {
+                <mat-error>{{ plateError }}</mat-error>
               }
             </mat-form-field>
           </div>
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.vehicleType') }}</mat-label>
+              <mat-label>{{ 'fields.vehicleType' | transloco }}</mat-label>
               <mat-select [formField]="vehicleForm.vehicle_type">
                 @for (option of vehicleTypes(); track option.value) {
                   <mat-option [value]="option.value">
-                    {{ t('types.vehicle.' + option.value) }}
+                    {{ 'types.vehicle.' + option.value | transloco }}
                   </mat-option>
                 }
               </mat-select>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.bodyType') }}</mat-label>
+              <mat-label>{{ 'fields.bodyType' | transloco }}</mat-label>
               <mat-select [formField]="vehicleForm.body_type">
                 @for (option of bodyTypes(); track option.value) {
-                  <mat-option [value]="option.value">{{ t('types.body.' + option.value) }}</mat-option>
+                  <mat-option [value]="option.value">
+                    {{ 'types.body.' + option.value | transloco }}
+                  </mat-option>
                 }
               </mat-select>
             </mat-form-field>
@@ -70,49 +74,50 @@
 
           <div class="grid-auto">
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.payload') }}</mat-label>
+              <mat-label>{{ 'fields.payload' | transloco }}</mat-label>
               <input matInput type="number" [formField]="vehicleForm.payload_kg" />
-              @if (errorOf(vehicleForm.payload_kg, t); as message) {
-                <mat-error>{{ message }}</mat-error>
+              @let payloadError = vehicleForm.payload_kg | formError;
+              @if (payloadError) {
+                <mat-error>{{ payloadError }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.volume') }}</mat-label>
+              <mat-label>{{ 'fields.volume' | transloco }}</mat-label>
               <input matInput type="number" [formField]="vehicleForm.volume_m3" step="0.1" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.range') }}</mat-label>
+              <mat-label>{{ 'fields.range' | transloco }}</mat-label>
               <input matInput type="number" [formField]="vehicleForm.max_range_km" />
             </mat-form-field>
           </div>
 
           <mat-expansion-panel>
             <mat-expansion-panel-header>
-              <mat-panel-title>{{ t('vehicles.dimensions') }}</mat-panel-title>
+              <mat-panel-title>{{ 'vehicles.dimensions' | transloco }}</mat-panel-title>
             </mat-expansion-panel-header>
 
-            <p class="dimensions-subhead">{{ t('vehicles.overallVehicle') }}</p>
+            <p class="dimensions-subhead">{{ 'vehicles.overallVehicle' | transloco }}</p>
             <div class="grid-auto">
               <mat-form-field appearance="outline">
-                <mat-label>{{ t('fields.length') }}</mat-label>
+                <mat-label>{{ 'fields.length' | transloco }}</mat-label>
                 <input matInput type="number" [formField]="vehicleForm.length_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>{{ t('fields.width') }}</mat-label>
+                <mat-label>{{ 'fields.width' | transloco }}</mat-label>
                 <input matInput type="number" [formField]="vehicleForm.width_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>{{ t('fields.height') }}</mat-label>
+                <mat-label>{{ 'fields.height' | transloco }}</mat-label>
                 <input matInput type="number" [formField]="vehicleForm.height_m" step="0.01" />
               </mat-form-field>
             </div>
 
-            <p class="dimensions-subhead">{{ t('vehicles.cargoCompartment') }}</p>
+            <p class="dimensions-subhead">{{ 'vehicles.cargoCompartment' | transloco }}</p>
             <div class="grid-auto">
               <mat-form-field appearance="outline">
-                <mat-label>{{ t('fields.length') }}</mat-label>
+                <mat-label>{{ 'fields.length' | transloco }}</mat-label>
                 <input
                   matInput
                   type="number"
@@ -121,11 +126,11 @@
                 />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>{{ t('fields.width') }}</mat-label>
+                <mat-label>{{ 'fields.width' | transloco }}</mat-label>
                 <input matInput type="number" [formField]="vehicleForm.cargo_width_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
-                <mat-label>{{ t('fields.height') }}</mat-label>
+                <mat-label>{{ 'fields.height' | transloco }}</mat-label>
                 <input
                   matInput
                   type="number"
@@ -138,18 +143,18 @@
 
           <div class="actions">
             <button mat-flat-button type="submit" [disabled]="vehicleForm().submitting()">
-              <mat-icon>{{ editingId() === null ? 'add' : 'save' }}</mat-icon>
-              {{
-                vehicleForm().submitting()
-                  ? t('actions.saving')
-                  : editingId() === null
-                    ? t('actions.addVehicle')
-                    : t('actions.save')
-              }}
+              <mat-icon>@if (editingId() === null) { add } @else { save }</mat-icon>
+              @if (vehicleForm().submitting()) {
+                {{ 'actions.saving' | transloco }}
+              } @else if (editingId() === null) {
+                {{ 'actions.addVehicle' | transloco }}
+              } @else {
+                {{ 'actions.save' | transloco }}
+              }
             </button>
             @if (editingId() !== null) {
               <button mat-button type="button" (click)="cancelEdit()">
-                {{ t('actions.cancel') }}
+                {{ 'actions.cancel' | transloco }}
               </button>
             }
           </div>
@@ -159,14 +164,14 @@
 
     <mat-card appearance="outlined">
       <mat-card-header>
-        <mat-card-title>{{ t('vehicles.registered') }}</mat-card-title>
+        <mat-card-title>{{ 'vehicles.registered' | transloco }}</mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
         @if (loading()) {
           <mat-progress-bar mode="indeterminate" />
         } @else if (vehicles().length === 0) {
-          <p class="empty-state">{{ t('vehicles.empty') }}</p>
+          <p class="empty-state">{{ 'vehicles.empty' | transloco }}</p>
         } @else {
           <div class="vehicle-list">
             @for (vehicle of vehicles(); track vehicle.id) {
@@ -179,51 +184,64 @@
                 <mat-card-content>
                   <dl class="fact-grid">
                     <div class="fact">
-                      <dt>{{ t('vehicles.facts.type') }}</dt>
-                      <dd>{{ t('types.vehicle.' + vehicle.vehicle_type) }}</dd>
+                      <dt>{{ 'vehicles.facts.type' | transloco }}</dt>
+                      <dd>{{ 'types.vehicle.' + vehicle.vehicle_type | transloco }}</dd>
                     </div>
                     <div class="fact">
-                      <dt>{{ t('vehicles.facts.body') }}</dt>
-                      <dd>{{ t('types.body.' + vehicle.body_type) }}</dd>
+                      <dt>{{ 'vehicles.facts.body' | transloco }}</dt>
+                      <dd>{{ 'types.body.' + vehicle.body_type | transloco }}</dd>
                     </div>
                     <div class="fact">
-                      <dt>{{ t('vehicles.facts.payload') }}</dt>
-                      <dd>{{ t('vehicles.weights.kg', { value: numberLabel(vehicle.payload_kg) }) }}</dd>
-                    </div>
-                    <div class="fact">
-                      <dt>{{ t('vehicles.facts.volume') }}</dt>
+                      <dt>{{ 'vehicles.facts.payload' | transloco }}</dt>
                       <dd>
                         {{
-                          vehicle.volume_m3
-                            ? t('vehicles.weights.m3', { value: numberLabel(vehicle.volume_m3, 1) })
-                            : t('common.notProvided')
+                          'vehicles.weights.kg'
+                            | transloco: { value: vehicle.payload_kg | localizedNumber }
                         }}
                       </dd>
                     </div>
                     <div class="fact">
-                      <dt>{{ t('vehicles.facts.cargo') }}</dt>
+                      <dt>{{ 'vehicles.facts.volume' | transloco }}</dt>
                       <dd>
-                        @if (vehicle.cargo_length_m && vehicle.cargo_width_m && vehicle.cargo_height_m) {
+                        @if (vehicle.volume_m3) {
                           {{
-                            t('vehicles.weights.dimensions', {
-                              length: numberLabel(vehicle.cargo_length_m, 2),
-                              width: numberLabel(vehicle.cargo_width_m, 2),
-                              height: numberLabel(vehicle.cargo_height_m, 2),
-                            })
+                            'vehicles.weights.m3'
+                              | transloco: { value: vehicle.volume_m3 | localizedNumber: 1 }
                           }}
                         } @else {
-                          {{ t('common.notProvided') }}
+                          {{ 'common.notProvided' | transloco }}
                         }
                       </dd>
                     </div>
                     <div class="fact">
-                      <dt>{{ t('vehicles.facts.range') }}</dt>
+                      <dt>{{ 'vehicles.facts.cargo' | transloco }}</dt>
                       <dd>
-                        {{
-                          vehicle.max_range_km
-                            ? t('vehicles.weights.km', { value: numberLabel(vehicle.max_range_km) })
-                            : t('common.notProvided')
-                        }}
+                        @if (vehicle.cargo_length_m && vehicle.cargo_width_m && vehicle.cargo_height_m) {
+                          {{
+                            'vehicles.weights.dimensions'
+                              | transloco
+                                : {
+                                    length: vehicle.cargo_length_m | localizedNumber: 2,
+                                    width: vehicle.cargo_width_m | localizedNumber: 2,
+                                    height: vehicle.cargo_height_m | localizedNumber: 2,
+                                  }
+                          }}
+                        } @else {
+                          {{ 'common.notProvided' | transloco }}
+                        }
+                      </dd>
+                    </div>
+                    <div class="fact">
+                      <dt>{{ 'vehicles.facts.range' | transloco }}</dt>
+                      <dd>
+                        @if (vehicle.max_range_km) {
+                          {{
+                            'vehicles.weights.km'
+                              | transloco: { value: vehicle.max_range_km | localizedNumber }
+                          }}
+                        } @else {
+                          {{ 'common.notProvided' | transloco }}
+                        }
                       </dd>
                     </div>
                   </dl>
@@ -232,11 +250,11 @@
                 <mat-card-actions align="end">
                   <button mat-button type="button" (click)="edit(vehicle)">
                     <mat-icon>edit</mat-icon>
-                    {{ t('actions.edit') }}
+                    {{ 'actions.edit' | transloco }}
                   </button>
                   <button mat-button type="button" (click)="remove(vehicle)">
                     <mat-icon>delete</mat-icon>
-                    {{ t('actions.remove') }}
+                    {{ 'actions.remove' | transloco }}
                   </button>
                 </mat-card-actions>
               </mat-card>

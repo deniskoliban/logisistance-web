@@ -4,9 +4,15 @@
   <p>{{ data.message }}</p>
 </mat-dialog-content>
 
-<mat-dialog-actions align="end" *transloco="let t">
-  <button mat-button type="button" [mat-dialog-close]="false">{{ t('actions.cancel') }}</button>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" [mat-dialog-close]="false">
+    {{ 'actions.cancel' | transloco }}
+  </button>
   <button mat-flat-button type="button" [mat-dialog-close]="true" cdkFocusInitial>
-    {{ data.confirmLabel ?? t('actions.save') }}
+    @if (data.confirmLabel) {
+      {{ data.confirmLabel }}
+    } @else {
+      {{ 'actions.save' | transloco }}
+    }
   </button>
 </mat-dialog-actions>

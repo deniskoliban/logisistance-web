@@ -1,4 +1,4 @@
-<div class="auth-shell" *transloco="let t">
+<div class="auth-shell">
   <mat-card appearance="outlined" class="auth-card">
     @if (loginForm().submitting()) {
       <mat-progress-bar mode="indeterminate" />
@@ -8,23 +8,24 @@
       <header class="auth-hero">
         <span class="brand-mark">LI</span>
         <div>
-          <h1>{{ t('auth.signInTitle') }}</h1>
-          <p class="auth-hero-sub">{{ t('auth.subtitle') }}</p>
+          <h1>{{ 'auth.signInTitle' | transloco }}</h1>
+          <p class="auth-hero-sub">{{ 'auth.subtitle' | transloco }}</p>
         </div>
       </header>
 
       <form [formRoot]="loginForm" class="stack">
         <mat-form-field appearance="outline">
-          <mat-label>{{ t('fields.email') }}</mat-label>
+          <mat-label>{{ 'fields.email' | transloco }}</mat-label>
           <input matInput type="email" [formField]="loginForm.email" autocomplete="email" />
           <mat-icon matPrefix>mail</mat-icon>
-          @if (errorOf(loginForm.email, t); as message) {
-            <mat-error>{{ message }}</mat-error>
+          @let emailError = loginForm.email | formError;
+          @if (emailError) {
+            <mat-error>{{ emailError }}</mat-error>
           }
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>{{ t('fields.password') }}</mat-label>
+          <mat-label>{{ 'fields.password' | transloco }}</mat-label>
           <input
             matInput
             type="password"
@@ -32,8 +33,9 @@
             autocomplete="current-password"
           />
           <mat-icon matPrefix>lock</mat-icon>
-          @if (errorOf(loginForm.password, t); as message) {
-            <mat-error>{{ message }}</mat-error>
+          @let passwordError = loginForm.password | formError;
+          @if (passwordError) {
+            <mat-error>{{ passwordError }}</mat-error>
           }
         </mat-form-field>
 
@@ -47,12 +49,13 @@
           class="submit-button"
           [disabled]="loginForm().submitting()"
         >
-          {{ t('auth.signInButton') }}
+          {{ 'auth.signInButton' | transloco }}
         </button>
       </form>
 
       <p class="auth-alt">
-        {{ t('auth.newHere') }} <a routerLink="/register">{{ t('auth.createAccountLink') }}</a>
+        {{ 'auth.newHere' | transloco }}
+        <a routerLink="/register">{{ 'auth.createAccountLink' | transloco }}</a>
       </p>
     </mat-card-content>
   </mat-card>

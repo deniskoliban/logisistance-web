@@ -1,5 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
+import { provideNativeDateAdapter } from '@angular/material/core';
 import { provideRouter } from '@angular/router';
 import { provideTransloco } from '@jsverse/transloco';
 
@@ -16,6 +17,7 @@ describe('AppComponent', () => {
       providers: [
         provideHttpClient(),
         provideRouter([]),
+        provideNativeDateAdapter(),
         provideTransloco({
           config: { availableLangs: ['en', 'ru'], defaultLang: 'en' },
           loader: BundledTranslocoLoader,

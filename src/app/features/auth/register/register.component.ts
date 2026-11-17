@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   FormField,
   FormRoot,
@@ -10,37 +10,35 @@ import {
   required,
   validate,
 } from '@angular/forms/signals';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router, RouterLink } from '@angular/router';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
-import { FleetService } from '../../../core/fleet/fleet.service';
 import { validateDriverAge } from '../../../core/utils/age.util';
 import { apiErrorMessage } from '../../../core/utils/api-error.util';
-import {
-  countryCodeFor,
-  countryName,
-  filterCountries,
-  localizedCountryOptions,
-} from '../../../core/utils/country.util';
+import { toIsoDate } from '../../../core/utils/date.util';
 import { errorOf } from '../../../core/utils/form-error.util';
+import { CountryFieldComponent } from '../../../shared/country-field/country-field.component';
+import { FormErrorPipe } from '../../../shared/pipes/form-error.pipe';
 
 interface RegisterModel {
   full_name: string;
-  date_of_birth: string;
+  date_of_birth: Date | null;
   email: string;
   password: string;
-  /** Country *name* in the active language; the ISO code is tracked separately. */
+  /** Country of residence, shown as a localised name. */
   country: string;
+  /** Country where the company is registered, shown as a localised name. */
+  company_country: string;
   city: string;
 }
 
@@ -51,47 +49,49 @@ interface RegisterModel {
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatAutocompleteModule,
+    MatDatepickerModule,
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
     MatProgressBarModule,
     FormRoot,
     FormField,
-    TranslocoDirective,
+    TranslocoPipe,
+    FormErrorPipe,
+    CountryFieldComponent,
   ],
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
   private readonly authService = inject(AuthService);
-  private readonly fleetService = inject(FleetService);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
 
-  protected readonly countryCodes = signal<string[]>([]);
-  protected readonly countryOptions = computed(() =>
-    localizedCountryOptions(this.countryCodes(), this.transloco.activeLang()),
-  );
-  protected readonly selectedCountryCode = signal<string | null>(null);
+  protected readonly residenceCode = signal<string | null>(null);
+  protected readonly companyCode = signal<string | null>(null);
+
+  /** Opens the calendar a plausible distance back instead of on the current month. */
+  protected readonly startAt = new Date(new Date().getFullYear() - 30, 0, 1);
 
   protected readonly model = signal<RegisterModel>({
     full_name: '',
-    date_of_birth: '',
+    date_of_birth: null,
     email: '',
     password: '',
     country: '',
+    company_country: '',
     city: '',
   });
-
-  protected readonly filteredCountries = computed(() =>
-    filterCountries(this.countryOptions(), this.model().country),
-  );
 
   /** Translatable error key (follows the active language). */
   protected readonly errorKey = signal<string | null>(null);
   /** Raw message from the API, kept verbatim in English. */
   protected readonly serverMessage = signal<string | null>(null);
   protected readonly errorOf = errorOf;
+
+  protected readonly hasCountries = computed(
+    () => this.residenceCode() !== null && this.companyCode() !== null,
+  );
 
   protected readonly registerForm = form(
     this.model,
@@ -102,7 +102,8 @@ export class RegisterComponent {
 
       required(path.date_of_birth);
       validate(path.date_of_birth, ({ value }) => {
-        const issue = validateDriverAge(value());
+        const dateOfBirth = value();
+        const issue = dateOfBirth ? validateDriverAge(toIsoDate(dateOfBirth)) : null;
         return issue ? { kind: issue } : null;
       });
 
@@ -115,7 +116,12 @@ export class RegisterComponent {
 
       required(path.country);
       validate(path.country, () =>
-        this.selectedCountryCode() ? null : { kind: 'countryUnknown' },
+        this.residenceCode() ? null : { kind: 'countryUnknown' },
+      );
+
+      required(path.company_country);
+      validate(path.company_country, () =>
+        this.companyCode() ? null : { kind: 'countryUnknown' },
       );
 
       required(path.city);
@@ -128,15 +134,26 @@ export class RegisterComponent {
           this.errorKey.set(null);
           this.serverMessage.set(null);
           const value = this.model();
-          const countryCode = this.selectedCountryCode();
-          if (!countryCode) {
+          const residence = this.residenceCode();
+          const company = this.companyCode();
+          const dateOfBirth = value.date_of_birth;
+
+          if (!residence || !company || !dateOfBirth) {
             this.errorKey.set('errors.countryUnknown');
             return undefined;
           }
 
           try {
             await firstValueFrom(
-              this.authService.register({ ...value, country: countryCode }),
+              this.authService.register({
+                full_name: value.full_name,
+                email: value.email,
+                password: value.password,
+                date_of_birth: toIsoDate(dateOfBirth),
+                country: residence,
+                company_country: company,
+                city: value.city,
+              }),
             );
             await this.router.navigate(['/vehicles']);
           } catch (error: unknown) {
@@ -149,32 +166,4 @@ export class RegisterComponent {
       },
     },
   );
-
-  constructor() {
-    this.fleetService.countries().subscribe({
-      next: (countries) => this.countryCodes.set(countries.map((country) => country.code)),
-      error: () => this.errorKey.set('errors.countriesFailed'),
-    });
-
-    // Keep the visible country name in step with the language (the chosen code never changes).
-    effect(() => {
-      const locale = this.transloco.activeLang();
-      const code = this.selectedCountryCode();
-      if (!code) {
-        return;
-      }
-      const name = countryName(code, locale);
-      if (name) {
-        this.model.update((model) => (model.country === name ? model : { ...model, country: name }));
-      }
-    });
-  }
-
-  protected onCountrySelected(name: string): void {
-    this.selectedCountryCode.set(countryCodeFor(this.countryOptions(), name));
-  }
-
-  protected onCountryTyped(): void {
-    this.selectedCountryCode.set(null);
-  }
 }

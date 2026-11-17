@@ -1,4 +1,4 @@
-<div class="auth-shell" *transloco="let t">
+<div class="auth-shell">
   <mat-card appearance="outlined" class="auth-card auth-card-wide">
     @if (registerForm().submitting()) {
       <mat-progress-bar mode="indeterminate" />
@@ -8,35 +8,38 @@
       <header class="auth-hero">
         <span class="brand-mark">LI</span>
         <div>
-          <h1>{{ t('auth.createTitle') }}</h1>
-          <p class="auth-hero-sub">{{ t('auth.subtitle') }}</p>
+          <h1>{{ 'auth.createTitle' | transloco }}</h1>
+          <p class="auth-hero-sub">{{ 'auth.subtitle' | transloco }}</p>
         </div>
       </header>
 
       <form [formRoot]="registerForm" class="stack">
         <section class="form-section">
-          <h2 class="form-section-label">{{ t('register.sectionDriver') }}</h2>
+          <h2 class="form-section-label">{{ 'register.sectionDriver' | transloco }}</h2>
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.fullName') }}</mat-label>
+              <mat-label>{{ 'fields.fullName' | transloco }}</mat-label>
               <input matInput type="text" [formField]="registerForm.full_name" autocomplete="name" />
-              @if (errorOf(registerForm.full_name, t); as message) {
-                <mat-error>{{ message }}</mat-error>
+              @let fullNameError = registerForm.full_name | formError;
+              @if (fullNameError) {
+                <mat-error>{{ fullNameError }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.dateOfBirth') }}</mat-label>
+              <mat-label>{{ 'fields.dateOfBirth' | transloco }}</mat-label>
               <input
                 matInput
-                type="date"
                 [formField]="registerForm.date_of_birth"
-                autocomplete="bday"
+                [matDatepicker]="dateOfBirthPicker"
               />
-              <mat-hint>{{ t('hints.age18') }}</mat-hint>
-              @if (errorOf(registerForm.date_of_birth, t); as message) {
-                <mat-error>{{ message }}</mat-error>
+              <mat-datepicker-toggle matIconSuffix [for]="dateOfBirthPicker" />
+              <mat-datepicker #dateOfBirthPicker [startAt]="startAt" />
+              <mat-hint>{{ 'hints.age18' | transloco }}</mat-hint>
+              @let dateOfBirthError = registerForm.date_of_birth | formError;
+              @if (dateOfBirthError) {
+                <mat-error>{{ dateOfBirthError }}</mat-error>
               }
             </mat-form-field>
           </div>
@@ -45,19 +48,20 @@
         <mat-divider />
 
         <section class="form-section">
-          <h2 class="form-section-label">{{ t('register.sectionSignIn') }}</h2>
+          <h2 class="form-section-label">{{ 'register.sectionSignIn' | transloco }}</h2>
 
           <mat-form-field appearance="outline">
-            <mat-label>{{ t('fields.email') }}</mat-label>
+            <mat-label>{{ 'fields.email' | transloco }}</mat-label>
             <input matInput type="email" [formField]="registerForm.email" autocomplete="email" />
             <mat-icon matPrefix>mail</mat-icon>
-            @if (errorOf(registerForm.email, t); as message) {
-              <mat-error>{{ message }}</mat-error>
+            @let emailError = registerForm.email | formError;
+            @if (emailError) {
+              <mat-error>{{ emailError }}</mat-error>
             }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>{{ t('fields.password') }}</mat-label>
+            <mat-label>{{ 'fields.password' | transloco }}</mat-label>
             <input
               matInput
               type="password"
@@ -65,9 +69,10 @@
               autocomplete="new-password"
             />
             <mat-icon matPrefix>lock</mat-icon>
-            <mat-hint>{{ t('hints.password8') }}</mat-hint>
-            @if (errorOf(registerForm.password, t); as message) {
-              <mat-error>{{ message }}</mat-error>
+            <mat-hint>{{ 'hints.password8' | transloco }}</mat-hint>
+            @let passwordError = registerForm.password | formError;
+            @if (passwordError) {
+              <mat-error>{{ passwordError }}</mat-error>
             }
           </mat-form-field>
         </section>
@@ -75,56 +80,33 @@
         <mat-divider />
 
         <section class="form-section">
-          <h2 class="form-section-label">{{ t('register.sectionBase') }}</h2>
+          <h2 class="form-section-label">{{ 'register.sectionCountries' | transloco }}</h2>
 
-          <div class="grid-2">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.country') }}</mat-label>
-              <input
-                matInput
-                type="text"
-                [formField]="registerForm.country"
-                [matAutocomplete]="countryAutocomplete"
-                [placeholder]="t('hints.typeToSearch')"
-                autocomplete="country-name"
-                (input)="onCountryTyped()"
-              />
-              <mat-icon matPrefix>public</mat-icon>
-              <mat-autocomplete
-                #countryAutocomplete="matAutocomplete"
-                (optionSelected)="onCountrySelected($event.option.value)"
-              >
-                @for (country of filteredCountries(); track country.code) {
-                  <mat-option [value]="country.name">
-                    {{ country.name }}
-                    <span class="option-code">{{ country.code }}</span>
-                  </mat-option>
-                } @empty {
-                  <mat-option disabled>{{ t('common.noCountryMatch') }}</mat-option>
-                }
-              </mat-autocomplete>
-              @if (errorOf(registerForm.country, t); as message) {
-                <mat-error>{{ message }}</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.city') }}</mat-label>
-              <input
-                matInput
-                type="text"
-                [formField]="registerForm.city"
-                autocomplete="address-level2"
-              />
-              @if (errorOf(registerForm.city, t); as message) {
-                <mat-error>{{ message }}</mat-error>
-              }
-            </mat-form-field>
+          <div class="grid-auto">
+            <app-country-field
+              [field]="registerForm.country"
+              labelKey="fields.countryOfResidence"
+              [(code)]="residenceCode"
+            />
+            <app-country-field
+              [field]="registerForm.company_country"
+              labelKey="fields.companyCountry"
+              [(code)]="companyCode"
+            />
           </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>{{ 'fields.city' | transloco }}</mat-label>
+            <input matInput type="text" [formField]="registerForm.city" autocomplete="address-level2" />
+            @let cityError = registerForm.city | formError;
+            @if (cityError) {
+              <mat-error>{{ cityError }}</mat-error>
+            }
+          </mat-form-field>
         </section>
 
         @if (errorKey(); as key) {
-          <p class="form-error">{{ t(key) }}</p>
+          <p class="form-error">{{ key | transloco }}</p>
         }
         @if (serverMessage(); as message) {
           <p class="form-error">{{ message }}</p>
@@ -136,12 +118,13 @@
           class="submit-button"
           [disabled]="registerForm().submitting()"
         >
-          {{ t('auth.createButton') }}
+          {{ 'auth.createButton' | transloco }}
         </button>
       </form>
 
       <p class="auth-alt">
-        {{ t('auth.alreadyRegistered') }} <a routerLink="/login">{{ t('auth.signInLink') }}</a>
+        {{ 'auth.alreadyRegistered' | transloco }}
+        <a routerLink="/login">{{ 'auth.signInLink' | transloco }}</a>
       </p>
     </mat-card-content>
   </mat-card>

@@ -14,12 +14,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { apiErrorMessage } from '../../../core/utils/api-error.util';
 import { errorOf } from '../../../core/utils/form-error.util';
+import { FormErrorPipe } from '../../../shared/pipes/form-error.pipe';
 
 interface LoginModel {
   email: string;
@@ -38,7 +39,8 @@ interface LoginModel {
     MatProgressBarModule,
     FormRoot,
     FormField,
-    TranslocoDirective,
+    TranslocoPipe,
+    FormErrorPipe,
   ],
   templateUrl: './login.component.html',
 })

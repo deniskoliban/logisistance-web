@@ -1,8 +1,8 @@
-<section class="page" *transloco="let t">
+<section class="page">
   <header class="page-head">
     <div>
-      <h1>{{ t('profile.title') }}</h1>
-      <p>{{ t('profile.subtitle') }}</p>
+      <h1>{{ 'profile.title' | transloco }}</h1>
+      <p>{{ 'profile.subtitle' | transloco }}</p>
     </div>
 
     @if (user(); as current) {
@@ -19,79 +19,66 @@
   <div class="split">
     <mat-card appearance="outlined">
       <mat-card-header>
-        <mat-card-title>{{ t('profile.accountDetails') }}</mat-card-title>
+        <mat-card-title>{{ 'profile.accountDetails' | transloco }}</mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
         <form [formRoot]="profileForm" class="stack">
           <mat-form-field appearance="outline">
-            <mat-label>{{ t('fields.fullName') }}</mat-label>
+            <mat-label>{{ 'fields.fullName' | transloco }}</mat-label>
             <input matInput type="text" [formField]="profileForm.full_name" autocomplete="name" />
-            @if (errorOf(profileForm.full_name, t); as message) {
-              <mat-error>{{ message }}</mat-error>
+            @let fullNameError = profileForm.full_name | formError;
+            @if (fullNameError) {
+              <mat-error>{{ fullNameError }}</mat-error>
             }
           </mat-form-field>
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.dateOfBirth') }}</mat-label>
+              <mat-label>{{ 'fields.dateOfBirth' | transloco }}</mat-label>
               <input
                 matInput
-                type="date"
                 [formField]="profileForm.date_of_birth"
-                autocomplete="bday"
+                [matDatepicker]="dateOfBirthPicker"
               />
-              @if (errorOf(profileForm.date_of_birth, t); as message) {
-                <mat-error>{{ message }}</mat-error>
+              <mat-datepicker-toggle matIconSuffix [for]="dateOfBirthPicker" />
+              <mat-datepicker #dateOfBirthPicker />
+              @let dateOfBirthError = profileForm.date_of_birth | formError;
+              @if (dateOfBirthError) {
+                <mat-error>{{ dateOfBirthError }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
-              <mat-label>{{ t('fields.city') }}</mat-label>
+              <mat-label>{{ 'fields.city' | transloco }}</mat-label>
               <input
                 matInput
                 type="text"
                 [formField]="profileForm.city"
                 autocomplete="address-level2"
               />
-              @if (errorOf(profileForm.city, t); as message) {
-                <mat-error>{{ message }}</mat-error>
+              @let cityError = profileForm.city | formError;
+              @if (cityError) {
+                <mat-error>{{ cityError }}</mat-error>
               }
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>{{ t('fields.country') }}</mat-label>
-            <input
-              matInput
-              type="text"
-              [formField]="profileForm.country"
-              [matAutocomplete]="countryAutocomplete"
-              [placeholder]="t('hints.typeToSearch')"
-              autocomplete="country-name"
-              (input)="onCountryTyped()"
+          <div class="grid-auto">
+            <app-country-field
+              [field]="profileForm.country"
+              labelKey="fields.countryOfResidence"
+              [(code)]="residenceCode"
             />
-            <mat-icon matPrefix>public</mat-icon>
-            <mat-autocomplete
-              #countryAutocomplete="matAutocomplete"
-              (optionSelected)="onCountrySelected($event.option.value)"
-            >
-              @for (country of filteredCountries(); track country.code) {
-                <mat-option [value]="country.name">
-                  {{ country.name }}
-                  <span class="option-code">{{ country.code }}</span>
-                </mat-option>
-              } @empty {
-                <mat-option disabled>{{ t('common.noCountryMatch') }}</mat-option>
-              }
-            </mat-autocomplete>
-            @if (errorOf(profileForm.country, t); as message) {
-              <mat-error>{{ message }}</mat-error>
-            }
-          </mat-form-field>
+            <app-country-field
+              [field]="profileForm.company_country"
+              labelKey="fields.companyCountry"
+              [(code)]="companyCode"
+            />
+          </div>
 
           @if (errorKey(); as key) {
-            <p class="form-error">{{ t(key) }}</p>
+            <p class="form-error">{{ key | transloco }}</p>
           }
           @if (serverMessage(); as message) {
             <p class="form-error">{{ message }}</p>
@@ -100,7 +87,11 @@
           <div class="actions">
             <button mat-flat-button type="submit" [disabled]="profileForm().submitting()">
               <mat-icon>save</mat-icon>
-              {{ profileForm().submitting() ? t('actions.saving') : t('actions.save') }}
+              @if (profileForm().submitting()) {
+                {{ 'actions.saving' | transloco }}
+              } @else {
+                {{ 'actions.save' | transloco }}
+              }
             </button>
           </div>
         </form>
@@ -109,35 +100,41 @@
 
     <mat-card appearance="outlined">
       <mat-card-header>
-        <mat-card-title>{{ t('profile.snapshot') }}</mat-card-title>
+        <mat-card-title>{{ 'profile.snapshot' | transloco }}</mat-card-title>
       </mat-card-header>
 
       <mat-card-content>
         @if (user(); as current) {
           <mat-list>
             <mat-list-item>
-              <span matListItemTitle>{{ t('profile.driver') }}</span>
+              <span matListItemTitle>{{ 'profile.driver' | transloco }}</span>
               <span matListItemLine>{{ current.full_name }}</span>
             </mat-list-item>
             <mat-list-item>
-              <span matListItemTitle>{{ t('fields.dateOfBirth') }}</span>
-              <span matListItemLine>{{ birthDateLabel() }} ({{ ageLabel() }})</span>
+              <span matListItemTitle>{{ 'fields.dateOfBirth' | transloco }}</span>
+              <span matListItemLine>
+                {{ birthDateLabel() }} ({{ 'profile.years' | plural: current.age }})
+              </span>
             </mat-list-item>
             <mat-list-item>
-              <span matListItemTitle>{{ t('profile.base') }}</span>
-              <span matListItemLine>{{ current.city }}, {{ countryLabel(current.country) }}</span>
+              <span matListItemTitle>{{ 'profile.base' | transloco }}</span>
+              <span matListItemLine>{{ current.city }}, {{ residenceLabel() }}</span>
             </mat-list-item>
             <mat-list-item>
-              <span matListItemTitle>{{ t('fields.email') }}</span>
+              <span matListItemTitle>{{ 'fields.companyCountry' | transloco }}</span>
+              <span matListItemLine>{{ companyLabel() }}</span>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ 'fields.email' | transloco }}</span>
               <span matListItemLine>{{ current.email }}</span>
             </mat-list-item>
             <mat-list-item>
-              <span matListItemTitle>{{ t('profile.memberSince') }}</span>
+              <span matListItemTitle>{{ 'profile.memberSince' | transloco }}</span>
               <span matListItemLine>{{ memberSince() }}</span>
             </mat-list-item>
           </mat-list>
 
-          <p class="identity-sub">{{ t('profile.roadmapHint') }}</p>
+          <p class="identity-sub">{{ 'profile.roadmapHint' | transloco }}</p>
         }
       </mat-card-content>
     </mat-card>

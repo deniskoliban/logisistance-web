@@ -6,7 +6,10 @@ export interface User {
   date_of_birth: string;
   /** Derived by the API from date_of_birth. */
   age: number;
+  /** Country of residence (ISO 3166-1 alpha-2). */
   country: string;
+  /** Country where the carrier company is registered. */
+  company_country: string;
   city: string;
   created_at: string;
   updated_at: string;
@@ -18,6 +21,7 @@ export interface RegisterPayload {
   full_name: string;
   date_of_birth: string;
   country: string;
+  company_country: string;
   city: string;
 }
 
@@ -30,5 +34,6 @@ export interface ProfileUpdate {
   full_name?: string;
   date_of_birth?: string;
   country?: string;
+  company_country?: string;
   city?: string;
 }

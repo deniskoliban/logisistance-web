@@ -36,25 +36,30 @@ npm run build      # production bundle
 
 Transloco handles every UI string; switching language is instant, no reload.
 
+- **Pipe in templates, `translate()` in TypeScript.** Templates use `{{ 'key' | transloco }}` (or
+  `| transloco: { param }` with parameters) — never the `*transloco="let t"` directive. Code that
+  runs in TS (snackbars, dialog data, error messages) calls `transloco.translate('key', params)`.
 - Dictionaries live in `src/app/i18n/en.json` / `ru.json` and are **bundled** through
-  `BundledTranslocoLoader` (two small locales do not warrant an HTTP round trip, and it removes a
-  flash of untranslated UI). For many locales or per-feature scopes, swap that one class for an
-  HTTP loader — nothing else changes.
+  `BundledTranslocoLoader`. The app initializer loads the active dictionary before the first render,
+  so no screen can flash raw keys.
 - `LanguageService` (`core/services/language.service.ts`) mirrors `ThemeService`: it sets
   `TranslocoService.setActiveLang`, updates `<html lang>` and remembers the choice in
   `localStorage` (`logisistance.lang`). The first visit follows `navigator.languages`.
 - The toolbar has a language menu next to the theme toggle, on every screen.
-- **Validation messages are translated, not frozen.** Validators only produce an error *kind*
-  (`required`, `minLength`, `ageTooYoung`, …) and `errorOf(field, t)` maps it to a dictionary entry,
-  so an error already on screen switches language with the rest of the UI.
-- Plural forms use CLDR through `Intl.PluralRules` (`core/i18n/plural.util.ts`): English needs
-  `one/other`, Russian needs `one/few/many` — `{{ t(pluralKey('vehicles.count', lang, n), {count: n}) }}`.
-- Numbers and dates go through `Intl.NumberFormat` / `Intl.DateTimeFormat`, so `24500` renders as
-  `24,500` in English and `24 500` in Russian.
+- **Validation messages are translated, not frozen.** Validators produce an error *kind*
+  (`required`, `minLength`, `ageTooYoung`, …) and the `formError` pipe (`shared/pipes/`) turns it into
+  a dictionary entry, so an error already on screen switches language with the rest of the UI.
+- Four pipes carry the formatting rules, so templates never call helper functions:
+  `transloco`, `formError`, `plural` (`{{ 'vehicles.count' | plural: n }}` — CLDR rules from
+  `Intl.PluralRules`, English `one/other`, Russian `one/few/many`) and `localizedNumber`
+  (`{{ vehicle.payload_kg | localizedNumber }}` → `24 500` / `24,500`).
+- Dates go through `Intl.DateTimeFormat`; the Material date picker uses the adapter locale, so
+  switching language also changes the date format (`15.01.1996` ↔ `1/15/1996`).
 - Country names are **not** a dictionary: they come from `Intl.DisplayNames` keyed by ISO code, so
   the list is localised without touching the API.
-- Known gap: messages coming *from the API* stay English (`detail` strings), which was a deliberate
-  decision — translating server errors needs stable error codes first.
+- Known gaps: messages coming *from the API* stay English (`detail` strings) — a deliberate
+  decision, translating server errors needs stable error codes first. Router `title`s and the
+  date-picker aria labels are also English.
 
 ## Theming
 
@@ -116,20 +121,27 @@ Conventions that follow from it:
 
 ### Localised text
 
-- No literal UI text in templates: add the key to **both** `i18n/en.json` and `i18n/ru.json`.
-  `dictionaries.spec.ts` fails the build if the two files drift apart (plural categories excepted).
-- Counted nouns go through `pluralKey(...)` + `Intl.PluralRules`, never through `count === 1 ? … : …`.
-- Numbers go through `formatNumber()` and dates through `formatDate()`; a raw number in a template is
-  a bug in the Russian UI.
+- No literal UI text in templates and no `*transloco` directive: use the `transloco` pipe (or one of
+  `formError`, `plural`, `localizedNumber`) and add the key to **both** `i18n/en.json` and
+  `i18n/ru.json`. `dictionaries.spec.ts` fails the build if the two files drift apart (plural
+  categories excepted).
+- No helper calls in templates either: anything derived (labels, formatted dates, counts) is a
+  `computed()` signal or a pipe, because a method call in a template re-runs on every change
+  detection cycle and hides the dependency from Angular's reactivity.
+- Counted nouns go through the `plural` pipe, numbers through `localizedNumber`, dates through
+  `formatDate()`/the date picker.
 
 ### Domain fields with a rule behind them
 
-- **Dates of birth** are ISO `yyyy-mm-dd` strings in the model and validated with
-  `validateDriverAge()` (`core/utils/age.util.ts`), which mirrors the server's 18–100 rule. Age is
-  never stored or typed; the API derives it and the UI only displays it.
-- **Country** is an autocomplete over the API-served list, bound to the country *name* for
-  readability. Convert with `countryCodeFor()` on submit and validate that the typed value is a real
-  option, otherwise a free-text entry would silently become an invalid code.
+- **Dates of birth** are `Date | null` in the model (a Material date picker, with manual typing also
+  allowed) and are converted with `toIsoDate()` on submit so no timezone shifts a birthday by a day.
+  Validation uses `validateDriverAge()`, mirroring the server's 18–100 rule. Age is never stored or
+  typed; the API derives it and the UI only displays it.
+- **Two countries per driver**: `country` is where the driver lives, `company_country` is where the
+  carrier company is registered — they are regularly different for EU operators, and freight search
+  will need both. Both are the same `app-country-field` component: an autocomplete over the
+  API-served list that shows the localised *name* while exposing the ISO *code* through `[(code)]`,
+  so no caller maps names to codes by hand.
 
 ### Responsive on phone, tablet and desktop
 
@@ -138,12 +150,16 @@ Verified at 360 px, 768 px and 1440 px wide — always check all three before ca
 | Breakpoint | Behaviour |
 | --- | --- |
 | ≤ 900 px | `.split` becomes one column, page header stacks, the driver name leaves the toolbar |
-| ≤ 620 px | 2/3-column form grids collapse to one column, "Sign out" becomes icon-only, smaller page padding |
+| ≤ 620 px | 2/3-column form grids collapse to one column, nav labels go icon-only, smaller page padding |
 | ≤ 400 px | nav links tighten, the profile identity block is hidden |
 
-Rules of thumb used here: no horizontal scrolling at any width (checked with
-`scrollWidth > clientWidth`), form fields always full width inside their grid cell, toolbars never
-wrap into two rows, and anything decorative collapses before anything interactive does.
+Below 360 px the layout stops shrinking on purpose: `body { min-width: 360px }` makes a narrower
+window scroll horizontally instead of compressing the design into unusable fields.
+
+Rules of thumb used here: no horizontal scrolling between 360 px and desktop (checked with
+`scrollWidth > clientWidth`), grids that hold long labels use `auto-fit minmax(...)` instead of a
+fixed column count so no language gets its labels clipped, form fields are always full width inside
+their grid cell, and toolbars never wrap into two rows.
 
 ## File naming conventions
 
@@ -199,13 +215,13 @@ The same markup in both languages — only the dictionaries change:
 
 ## Behaviour
 
-- Registration collects name, date of birth, email, password, country and city; a successful sign-up
-  signs the user in immediately. Age is never typed in — it is derived by the API from the date of
-  birth, so it cannot drift. The form blocks under-18 and future dates with a message from the same
-  schema rule the API enforces.
-- Country is a searchable autocomplete: typing `pol` (or `Пол` in Russian) narrows the list, matched
-  on name substring or exact code. The API stores ISO codes, the field shows localised names
-  (`core/utils/country.util.ts` maps between them).
+- Registration collects name, date of birth, email, password, country of residence, company
+  registration country and city; a successful sign-up signs the user in immediately. Age is never
+  typed in — it is derived by the API from the date of birth, so it cannot drift. The form blocks
+  under-18 and future dates with a message from the same schema rule the API enforces.
+- Both country fields are searchable autocompletes: typing `pol` (or `Пол` in Russian) narrows the
+  list, matched on name substring or exact code. The API stores ISO codes, the field shows localised
+  names (`core/utils/country.util.ts` maps between them).
 - The JWT is attached by a functional interceptor to every `/api/...` request and survives a page
   reload through `localStorage`. A `401` from the API clears the session and returns to `/login`, so
   a stale token cannot leave the UI looking signed in.

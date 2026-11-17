@@ -1,0 +1,32 @@
+<mat-form-field appearance="outline">
+  <mat-label>{{ labelKey() | transloco }}</mat-label>
+  <input
+    matInput
+    type="text"
+    [formField]="field()"
+    [matAutocomplete]="countryAutocomplete"
+    [placeholder]="'hints.typeToSearch' | transloco"
+    autocomplete="country-name"
+    (input)="typed()"
+  />
+  <mat-icon matPrefix>public</mat-icon>
+
+  <mat-autocomplete
+    #countryAutocomplete="matAutocomplete"
+    (optionSelected)="optionSelected($event.option.value)"
+  >
+    @for (country of filtered(); track country.code) {
+      <mat-option [value]="country.name">
+        {{ country.name }}
+        <span class="option-code">{{ country.code }}</span>
+      </mat-option>
+    } @empty {
+      <mat-option disabled>{{ 'common.noCountryMatch' | transloco }}</mat-option>
+    }
+  </mat-autocomplete>
+
+  @let error = field() | formError;
+  @if (error) {
+    <mat-error>{{ error }}</mat-error>
+  }
+</mat-form-field>

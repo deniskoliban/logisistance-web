@@ -1,6 +1,6 @@
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 
 import {
   API_BASE,
@@ -14,13 +14,22 @@ import {
 @Injectable({ providedIn: 'root' })
 export class FleetService {
   private readonly http = inject(HttpClient);
+  private countries$?: Observable<CountryOption[]>;
+  private vehicleOptions$?: Observable<VehicleOptions>;
 
+  /** Cached: several country fields on one screen must not trigger several requests. */
   countries(): Observable<CountryOption[]> {
-    return this.http.get<CountryOption[]>(`${API_BASE}/reference/countries`);
+    this.countries$ ??= this.http
+      .get<CountryOption[]>(`${API_BASE}/reference/countries`)
+      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    return this.countries$;
   }
 
   vehicleOptions(): Observable<VehicleOptions> {
-    return this.http.get<VehicleOptions>(`${API_BASE}/reference/vehicle-options`);
+    this.vehicleOptions$ ??= this.http
+      .get<VehicleOptions>(`${API_BASE}/reference/vehicle-options`)
+      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    return this.vehicleOptions$;
   }
 
   list(): Observable<VehicleList> {

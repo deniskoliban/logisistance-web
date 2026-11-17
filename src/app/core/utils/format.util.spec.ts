@@ -1,5 +1,18 @@
-import { formatDate } from './date.util';
+import { formatDate, fromIsoDate, toIsoDate } from './date.util';
 import { formatNumber } from './number.util';
+
+describe('toIsoDate / fromIsoDate', () => {
+  it('round-trips a local calendar date without timezone drift', () => {
+    const date = new Date(1988, 2, 10);
+    expect(toIsoDate(date)).toBe('1988-03-10');
+    expect(fromIsoDate('1988-03-10')).toEqual(date);
+  });
+
+  it('rejects impossible dates', () => {
+    expect(fromIsoDate('2026-02-31')).toBeNull();
+    expect(fromIsoDate('not-a-date')).toBeNull();
+  });
+});
 
 describe('formatDate', () => {
   it('formats an ISO date for the locale', () => {
@@ -9,7 +22,7 @@ describe('formatDate', () => {
 
   it('returns the input unchanged when it is not an ISO date', () => {
     expect(formatDate('not-a-date', 'en')).toBe('not-a-date');
-    expect(formatDate('2026-02-31', 'en')).toMatch(/2026|invalid/i);
+    expect(formatDate('2026-02-31', 'en')).toBe('2026-02-31');
   });
 });
 

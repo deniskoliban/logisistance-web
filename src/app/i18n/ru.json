@@ -36,14 +36,15 @@
   "register": {
     "sectionDriver": "Водитель",
     "sectionSignIn": "Данные для входа",
-    "sectionBase": "Откуда вы работаете"
+    "sectionCountries": "Страны"
   },
   "fields": {
     "fullName": "Имя и фамилия",
     "dateOfBirth": "Дата рождения",
     "email": "Электронная почта",
     "password": "Пароль",
-    "country": "Страна",
+    "countryOfResidence": "Страна проживания",
+    "companyCountry": "Страна регистрации",
     "city": "Город",
     "name": "Название",
     "plate": "Госномер",
