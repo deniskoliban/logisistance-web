@@ -1,5 +1,15 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormField,
+  FormRoot,
+  TreeValidationResult,
+  form,
+  max,
+  maxLength,
+  min,
+  minLength,
+  required,
+} from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,20 +20,52 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { forkJoin, firstValueFrom } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 
 import { FleetService } from '../../core/fleet/fleet.service';
-import { OptionItem, Vehicle, VehicleInput, VehicleOptions } from '../../core/models';
+import { BodyType, OptionItem, Vehicle, VehicleInput, VehicleType } from '../../core/models';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
+import { errorOf } from '../../core/utils/form-error.util';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
 } from '../../shared/confirm-dialog/confirm-dialog.component';
 
+interface VehicleModel {
+  label: string;
+  plate: string;
+  vehicle_type: VehicleType;
+  body_type: BodyType;
+  payload_kg: number | null;
+  volume_m3: number | null;
+  max_range_km: number | null;
+  length_m: number | null;
+  width_m: number | null;
+  height_m: number | null;
+  cargo_length_m: number | null;
+  cargo_width_m: number | null;
+  cargo_height_m: number | null;
+}
+
+const EMPTY_VEHICLE: VehicleModel = {
+  label: '',
+  plate: '',
+  vehicle_type: 'articulated_truck',
+  body_type: 'curtain_side',
+  payload_kg: null,
+  volume_m3: null,
+  max_range_km: null,
+  length_m: null,
+  width_m: null,
+  height_m: null,
+  cargo_length_m: null,
+  cargo_width_m: null,
+  cargo_height_m: null,
+};
+
 @Component({
   selector: 'app-vehicles',
   imports: [
-    ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
@@ -32,11 +74,12 @@ import {
     MatIconModule,
     MatExpansionModule,
     MatProgressBarModule,
+    FormRoot,
+    FormField,
   ],
   templateUrl: './vehicles.component.html',
 })
 export class VehiclesComponent implements OnInit {
-  private readonly formBuilder = inject(FormBuilder);
   private readonly fleetService = inject(FleetService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -46,25 +89,51 @@ export class VehiclesComponent implements OnInit {
   protected readonly bodyTypes = signal<OptionItem[]>([]);
 
   protected readonly loading = signal(true);
-  protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly editingId = signal<number | null>(null);
+  protected readonly errorOf = errorOf;
 
-  protected readonly form = this.formBuilder.nonNullable.group({
-    label: ['', [Validators.required, Validators.maxLength(80)]],
-    plate: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]],
-    vehicle_type: ['articulated_truck', [Validators.required]],
-    body_type: ['curtain_side', [Validators.required]],
-    payload_kg: [null as number | null, [Validators.required, Validators.min(1), Validators.max(60000)]],
-    volume_m3: [null as number | null, [Validators.min(0)]],
-    max_range_km: [null as number | null, [Validators.min(0)]],
-    length_m: [null as number | null, [Validators.min(0)]],
-    width_m: [null as number | null, [Validators.min(0)]],
-    height_m: [null as number | null, [Validators.min(0)]],
-    cargo_length_m: [null as number | null, [Validators.min(0)]],
-    cargo_width_m: [null as number | null, [Validators.min(0)]],
-    cargo_height_m: [null as number | null, [Validators.min(0)]],
-  });
+  protected readonly model = signal<VehicleModel>({ ...EMPTY_VEHICLE });
+
+  protected readonly vehicleForm = form(
+    this.model,
+    (path) => {
+      required(path.label, { message: 'Give the vehicle a name' });
+      maxLength(path.label, 80, { message: 'Up to 80 characters' });
+
+      required(path.plate, { message: 'Plate is required' });
+      minLength(path.plate, 3, { message: '3–20 characters' });
+      maxLength(path.plate, 20, { message: '3–20 characters' });
+
+      required(path.payload_kg, { message: 'Payload is required' });
+      min(path.payload_kg, 1, { message: 'At least 1 kg' });
+      max(path.payload_kg, 60000, { message: 'Up to 60 000 kg' });
+    },
+    {
+      submission: {
+        action: async (): Promise<TreeValidationResult> => {
+          this.error.set(null);
+          const editingId = this.editingId();
+          const payload = this.buildPayload();
+
+          try {
+            if (editingId === null) {
+              await firstValueFrom(this.fleetService.create(payload));
+              this.notify('Vehicle added to your fleet.');
+            } else {
+              await firstValueFrom(this.fleetService.update(editingId, payload));
+              this.notify('Vehicle updated.');
+            }
+            this.resetForm();
+            this.reload();
+          } catch (error: unknown) {
+            this.error.set(apiErrorMessage(error, 'Could not save the vehicle.'));
+          }
+          return undefined;
+        },
+      },
+    },
+  );
 
   ngOnInit(): void {
     this.reload();
@@ -85,41 +154,10 @@ export class VehiclesComponent implements OnInit {
     return this.optionLabel(this.bodyTypes(), value);
   }
 
-  protected submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const payload = this.buildPayload();
-    const editingId = this.editingId();
-
-    this.saving.set(true);
-    this.error.set(null);
-
-    const request$ =
-      editingId === null
-        ? this.fleetService.create(payload)
-        : this.fleetService.update(editingId, payload);
-
-    request$.subscribe({
-      next: () => {
-        this.saving.set(false);
-        this.notify(editingId === null ? 'Vehicle added to your fleet.' : 'Vehicle updated.');
-        this.resetForm();
-        this.reload();
-      },
-      error: (error: unknown) => {
-        this.saving.set(false);
-        this.error.set(apiErrorMessage(error, 'Could not save the vehicle.'));
-      },
-    });
-  }
-
   protected edit(vehicle: Vehicle): void {
-    this.editingId.set(vehicle.id);
     this.error.set(null);
-    this.form.patchValue({
+    this.editingId.set(vehicle.id);
+    this.model.set({
       label: vehicle.label,
       plate: vehicle.plate,
       vehicle_type: vehicle.vehicle_type,
@@ -166,9 +204,8 @@ export class VehiclesComponent implements OnInit {
         }
         this.reload();
       },
-      error: (error: unknown) => {
-        this.error.set(apiErrorMessage(error, 'Could not remove the vehicle.'));
-      },
+      error: (error: unknown) =>
+        this.error.set(apiErrorMessage(error, 'Could not remove the vehicle.')),
     });
   }
 
@@ -177,41 +214,20 @@ export class VehiclesComponent implements OnInit {
   }
 
   private buildPayload(): VehicleInput {
-    const value = this.form.getRawValue();
+    const value = this.model();
     return {
+      ...value,
       label: value.label.trim(),
       plate: value.plate.trim().toUpperCase(),
-      vehicle_type: value.vehicle_type as VehicleInput['vehicle_type'],
-      body_type: value.body_type as VehicleInput['body_type'],
       payload_kg: Number(value.payload_kg),
-      volume_m3: value.volume_m3 === null ? null : Number(value.volume_m3),
-      max_range_km: value.max_range_km === null ? null : Number(value.max_range_km),
-      length_m: value.length_m === null ? null : Number(value.length_m),
-      width_m: value.width_m === null ? null : Number(value.width_m),
-      height_m: value.height_m === null ? null : Number(value.height_m),
-      cargo_length_m: value.cargo_length_m === null ? null : Number(value.cargo_length_m),
-      cargo_width_m: value.cargo_width_m === null ? null : Number(value.cargo_width_m),
-      cargo_height_m: value.cargo_height_m === null ? null : Number(value.cargo_height_m),
     };
   }
 
   private resetForm(): void {
     this.editingId.set(null);
-    this.form.reset({
-      label: '',
-      plate: '',
-      vehicle_type: 'articulated_truck',
-      body_type: 'curtain_side',
-      payload_kg: null,
-      volume_m3: null,
-      max_range_km: null,
-      length_m: null,
-      width_m: null,
-      height_m: null,
-      cargo_length_m: null,
-      cargo_width_m: null,
-      cargo_height_m: null,
-    });
+    this.model.set({ ...EMPTY_VEHICLE });
+    // Clearing touched/dirty keeps the freshly emptied form from flashing validation errors.
+    this.vehicleForm().reset();
   }
 
   private reload(): void {
@@ -220,7 +236,7 @@ export class VehiclesComponent implements OnInit {
       list: this.fleetService.list(),
       options: this.fleetService.vehicleOptions(),
     }).subscribe({
-      next: ({ list, options }: { list: { items: Vehicle[] }; options: VehicleOptions }) => {
+      next: ({ list, options }) => {
         this.vehicles.set(list.items);
         this.vehicleTypes.set(options.vehicle_types);
         this.bodyTypes.set(options.body_types);

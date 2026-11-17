@@ -27,9 +27,9 @@
     @if (user(); as current) {
       <span class="user-name">{{ current.full_name }}</span>
     }
-    <button mat-stroked-button type="button" (click)="logout()">
+    <button mat-stroked-button type="button" (click)="logout()" aria-label="Sign out">
       <mat-icon>logout</mat-icon>
-      Sign out
+      <span class="btn-label">Sign out</span>
     </button>
   }
 </mat-toolbar>

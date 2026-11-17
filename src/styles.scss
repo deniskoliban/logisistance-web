@@ -255,13 +255,14 @@ body {
 
 /* ---------- responsive ---------- */
 
+/* Tablet and below: single-column layout, tighter chrome. */
 @media (max-width: 900px) {
   .split {
     grid-template-columns: 1fr;
   }
 
   .app-main {
-    padding: 16px;
+    padding: 18px;
   }
 
   .grid-3 {
@@ -271,11 +272,83 @@ body {
   .user-name {
     display: none;
   }
+
+  .page-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
+/* Phones: icon-only toolbar actions, full-width fields, no side padding waste. */
 @media (max-width: 620px) {
+  .app-main {
+    padding: 14px 12px 28px;
+  }
+
+  .app-toolbar {
+    gap: 4px;
+    padding: 0 10px;
+  }
+
+  .brand-name,
+  .btn-label {
+    display: none;
+  }
+
+  .app-nav {
+    margin-left: 4px;
+  }
+
+  .app-nav a {
+    padding: 0 10px;
+    min-width: 0;
+  }
+
   .grid-2,
   .grid-3 {
     grid-template-columns: 1fr;
   }
+
+  .page-head h1 {
+    font-size: 20px;
+  }
+
+  .auth-shell {
+    padding: 16px 4px;
+  }
+
+  .auth-card {
+    padding: 16px;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .actions .btn,
+  .actions button {
+    flex: 1 1 auto;
+  }
+
+  .fact-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
+
+/* Small phones: keep the essentials only. */
+@media (max-width: 400px) {
+  .app-nav a {
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .identity {
+    display: none;
+  }
+
+  .fact-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+  }
+}
+

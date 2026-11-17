@@ -1,5 +1,12 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormField,
+  FormRoot,
+  TreeValidationResult,
+  email,
+  form,
+  required,
+} from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -7,14 +14,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { apiErrorMessage } from '../../../core/utils/api-error.util';
+import { errorOf } from '../../../core/utils/form-error.util';
+
+interface LoginModel {
+  email: string;
+  password: string;
+}
 
 @Component({
   selector: 'app-login',
   imports: [
-    ReactiveFormsModule,
     RouterLink,
     MatCardModule,
     MatFormFieldModule,
@@ -22,42 +35,41 @@ import { apiErrorMessage } from '../../../core/utils/api-error.util';
     MatButtonModule,
     MatIconModule,
     MatProgressBarModule,
+    FormRoot,
+    FormField,
   ],
   templateUrl: './login.component.html',
 })
 export class LoginComponent {
-  private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  protected readonly form = this.formBuilder.nonNullable.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]],
-  });
-
-  protected readonly submitting = signal(false);
+  protected readonly model = signal<LoginModel>({ email: '', password: '' });
   protected readonly error = signal<string | null>(null);
+  protected readonly errorOf = errorOf;
 
-  protected submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    this.submitting.set(true);
-    this.error.set(null);
-
-    this.authService.login(this.form.getRawValue()).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/vehicles';
-        void this.router.navigateByUrl(returnUrl);
+  protected readonly loginForm = form(
+    this.model,
+    (path) => {
+      required(path.email, { message: 'Email is required' });
+      email(path.email, { message: 'Enter a valid email address' });
+      required(path.password, { message: 'Password is required' });
+    },
+    {
+      submission: {
+        action: async (): Promise<TreeValidationResult> => {
+          this.error.set(null);
+          try {
+            await firstValueFrom(this.authService.login(this.model()));
+            const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/vehicles';
+            await this.router.navigateByUrl(returnUrl);
+          } catch (error: unknown) {
+            this.error.set(apiErrorMessage(error, 'Could not sign in.'));
+          }
+          return undefined;
+        },
       },
-      error: (error: unknown) => {
-        this.submitting.set(false);
-        this.error.set(apiErrorMessage(error, 'Could not sign in.'));
-      },
-    });
-  }
+    },
+  );
 }

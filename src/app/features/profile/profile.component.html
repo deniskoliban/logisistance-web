@@ -23,44 +23,47 @@
       </mat-card-header>
 
       <mat-card-content>
-        <form [formGroup]="form" (ngSubmit)="submit()" class="stack">
+        <form [formRoot]="profileForm" class="stack">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Full name</mat-label>
-            <input matInput type="text" formControlName="full_name" autocomplete="name" />
-            @if (form.controls.full_name.invalid && form.controls.full_name.touched) {
-              <mat-error>Enter your full name</mat-error>
+            <input matInput type="text" [formField]="profileForm.full_name" autocomplete="name" />
+            @if (errorOf(profileForm.full_name); as message) {
+              <mat-error>{{ message }}</mat-error>
             }
           </mat-form-field>
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
               <mat-label>Age</mat-label>
-              <input matInput type="number" formControlName="age" min="18" max="100" />
-              @if (form.controls.age.hasError('required')) {
-                <mat-error>Age is required</mat-error>
-              } @else if (form.controls.age.invalid) {
-                <mat-error>Between 18 and 100</mat-error>
+              <input matInput type="number" [formField]="profileForm.age" />
+              @if (errorOf(profileForm.age); as message) {
+                <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>City</mat-label>
-              <input matInput type="text" formControlName="city" autocomplete="address-level2" />
-              @if (form.controls.city.invalid && form.controls.city.touched) {
-                <mat-error>Enter your city</mat-error>
+              <input
+                matInput
+                type="text"
+                [formField]="profileForm.city"
+                autocomplete="address-level2"
+              />
+              @if (errorOf(profileForm.city); as message) {
+                <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
           </div>
 
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Country</mat-label>
-            <mat-select formControlName="country">
+            <mat-select [formField]="profileForm.country">
               @for (country of countries(); track country.code) {
                 <mat-option [value]="country.code">{{ country.name }}</mat-option>
               }
             </mat-select>
-            @if (form.controls.country.hasError('required')) {
-              <mat-error>Select your country</mat-error>
+            @if (errorOf(profileForm.country); as message) {
+              <mat-error>{{ message }}</mat-error>
             }
           </mat-form-field>
 
@@ -69,9 +72,9 @@
           }
 
           <div class="actions">
-            <button mat-flat-button type="submit" [disabled]="saving()">
+            <button mat-flat-button type="submit" [disabled]="profileForm().submitting()">
               <mat-icon>save</mat-icon>
-              {{ saving() ? 'Saving…' : 'Save changes' }}
+              {{ profileForm().submitting() ? 'Saving…' : 'Save changes' }}
             </button>
           </div>
         </form>

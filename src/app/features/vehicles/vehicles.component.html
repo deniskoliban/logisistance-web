@@ -20,21 +20,21 @@
       </mat-card-header>
 
       <mat-card-content>
-        <form [formGroup]="form" (ngSubmit)="submit()" class="stack">
+        <form [formRoot]="vehicleForm" class="stack">
           <div class="grid-2">
             <mat-form-field appearance="outline">
               <mat-label>Name</mat-label>
-              <input matInput type="text" formControlName="label" placeholder="MAN TGX" />
-              @if (form.controls.label.invalid && form.controls.label.touched) {
-                <mat-error>Give the vehicle a name</mat-error>
+              <input matInput type="text" [formField]="vehicleForm.label" placeholder="MAN TGX" />
+              @if (errorOf(vehicleForm.label); as message) {
+                <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Plate</mat-label>
-              <input matInput type="text" formControlName="plate" placeholder="WGM 12345" />
-              @if (form.controls.plate.invalid && form.controls.plate.touched) {
-                <mat-error>3–20 characters</mat-error>
+              <input matInput type="text" [formField]="vehicleForm.plate" placeholder="WGM 12345" />
+              @if (errorOf(vehicleForm.plate); as message) {
+                <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
           </div>
@@ -42,7 +42,7 @@
           <div class="grid-2">
             <mat-form-field appearance="outline">
               <mat-label>Vehicle type</mat-label>
-              <mat-select formControlName="vehicle_type">
+              <mat-select [formField]="vehicleForm.vehicle_type">
                 @for (option of vehicleTypes(); track option.value) {
                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
                 }
@@ -51,7 +51,7 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Body type</mat-label>
-              <mat-select formControlName="body_type">
+              <mat-select [formField]="vehicleForm.body_type">
                 @for (option of bodyTypes(); track option.value) {
                   <mat-option [value]="option.value">{{ option.label }}</mat-option>
                 }
@@ -62,20 +62,20 @@
           <div class="grid-3">
             <mat-form-field appearance="outline">
               <mat-label>Payload (kg)</mat-label>
-              <input matInput type="number" formControlName="payload_kg" min="1" placeholder="24000" />
-              @if (form.controls.payload_kg.invalid && form.controls.payload_kg.touched) {
-                <mat-error>Required</mat-error>
+              <input matInput type="number" [formField]="vehicleForm.payload_kg" />
+              @if (errorOf(vehicleForm.payload_kg); as message) {
+                <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Volume (m³)</mat-label>
-              <input matInput type="number" formControlName="volume_m3" min="0" step="0.1" />
+              <input matInput type="number" [formField]="vehicleForm.volume_m3" step="0.1" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Range (km)</mat-label>
-              <input matInput type="number" formControlName="max_range_km" min="0" />
+              <input matInput type="number" [formField]="vehicleForm.max_range_km" />
             </mat-form-field>
           </div>
 
@@ -88,15 +88,15 @@
             <div class="grid-3">
               <mat-form-field appearance="outline">
                 <mat-label>Length (m)</mat-label>
-                <input matInput type="number" formControlName="length_m" min="0" step="0.01" />
+                <input matInput type="number" [formField]="vehicleForm.length_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Width (m)</mat-label>
-                <input matInput type="number" formControlName="width_m" min="0" step="0.01" />
+                <input matInput type="number" [formField]="vehicleForm.width_m" step="0.01" />
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Height (m)</mat-label>
-                <input matInput type="number" formControlName="height_m" min="0" step="0.01" />
+                <input matInput type="number" [formField]="vehicleForm.height_m" step="0.01" />
               </mat-form-field>
             </div>
 
@@ -104,23 +104,47 @@
             <div class="grid-3">
               <mat-form-field appearance="outline">
                 <mat-label>Length (m)</mat-label>
-                <input matInput type="number" formControlName="cargo_length_m" min="0" step="0.01" />
+                <input
+                  matInput
+                  type="number"
+                  [formField]="vehicleForm.cargo_length_m"
+                 
+                  step="0.01"
+                />
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Width (m)</mat-label>
-                <input matInput type="number" formControlName="cargo_width_m" min="0" step="0.01" />
+                <input
+                  matInput
+                  type="number"
+                  [formField]="vehicleForm.cargo_width_m"
+                 
+                  step="0.01"
+                />
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Height (m)</mat-label>
-                <input matInput type="number" formControlName="cargo_height_m" min="0" step="0.01" />
+                <input
+                  matInput
+                  type="number"
+                  [formField]="vehicleForm.cargo_height_m"
+                 
+                  step="0.01"
+                />
               </mat-form-field>
             </div>
           </mat-expansion-panel>
 
           <div class="actions">
-            <button mat-flat-button type="submit" [disabled]="saving()">
+            <button mat-flat-button type="submit" [disabled]="vehicleForm().submitting()">
               <mat-icon>{{ editingId() === null ? 'add' : 'save' }}</mat-icon>
-              {{ saving() ? 'Saving…' : editingId() === null ? 'Add vehicle' : 'Save changes' }}
+              {{
+                vehicleForm().submitting()
+                  ? 'Saving…'
+                  : editingId() === null
+                    ? 'Add vehicle'
+                    : 'Save changes'
+              }}
             </button>
             @if (editingId() !== null) {
               <button mat-button type="button" (click)="cancelEdit()">Cancel</button>

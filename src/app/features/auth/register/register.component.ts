@@ -1,5 +1,16 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormField,
+  FormRoot,
+  TreeValidationResult,
+  email,
+  form,
+  max,
+  maxLength,
+  min,
+  minLength,
+  required,
+} from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,16 +19,26 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { FleetService } from '../../../core/fleet/fleet.service';
 import { CountryOption } from '../../../core/models';
 import { apiErrorMessage } from '../../../core/utils/api-error.util';
+import { errorOf } from '../../../core/utils/form-error.util';
+
+interface RegisterModel {
+  full_name: string;
+  email: string;
+  password: string;
+  age: number | null;
+  country: string;
+  city: string;
+}
 
 @Component({
   selector: 'app-register',
   imports: [
-    ReactiveFormsModule,
     RouterLink,
     MatCardModule,
     MatFormFieldModule,
@@ -26,63 +47,83 @@ import { apiErrorMessage } from '../../../core/utils/api-error.util';
     MatButtonModule,
     MatIconModule,
     MatProgressBarModule,
+    FormRoot,
+    FormField,
   ],
   templateUrl: './register.component.html',
 })
 export class RegisterComponent {
-  private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly fleetService = inject(FleetService);
   private readonly router = inject(Router);
 
   protected readonly countries = signal<CountryOption[]>([]);
-  protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly errorOf = errorOf;
 
-  protected readonly form = this.formBuilder.nonNullable.group({
-    full_name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(128)]],
-    age: [null as number | null, [Validators.required, Validators.min(18), Validators.max(100)]],
-    country: ['', [Validators.required]],
-    city: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(120)]],
+  protected readonly model = signal<RegisterModel>({
+    full_name: '',
+    email: '',
+    password: '',
+    age: null,
+    country: '',
+    city: '',
   });
+
+  protected readonly registerForm = form(
+    this.model,
+    (path) => {
+      required(path.full_name, { message: 'Full name is required' });
+      minLength(path.full_name, 2, { message: 'At least 2 characters' });
+      maxLength(path.full_name, 120, { message: 'Up to 120 characters' });
+
+      required(path.email, { message: 'Email is required' });
+      email(path.email, { message: 'Enter a valid email address' });
+
+      required(path.password, { message: 'Password is required' });
+      minLength(path.password, 8, { message: 'Use at least 8 characters' });
+      maxLength(path.password, 128, { message: 'Up to 128 characters' });
+
+      required(path.age, { message: 'Age is required' });
+      min(path.age, 18, { message: 'Drivers must be at least 18' });
+      max(path.age, 100, { message: 'Drivers must be at most 100' });
+
+      required(path.country, { message: 'Select your country' });
+
+      required(path.city, { message: 'City is required' });
+      minLength(path.city, 2, { message: 'At least 2 characters' });
+      maxLength(path.city, 120, { message: 'Up to 120 characters' });
+    },
+    {
+      submission: {
+        action: async (): Promise<TreeValidationResult> => {
+          this.error.set(null);
+          const value = this.model();
+          try {
+            await firstValueFrom(
+              this.authService.register({
+                full_name: value.full_name,
+                email: value.email,
+                password: value.password,
+                age: Number(value.age),
+                country: value.country,
+                city: value.city,
+              }),
+            );
+            await this.router.navigate(['/vehicles']);
+          } catch (error: unknown) {
+            this.error.set(apiErrorMessage(error, 'Could not create the account.'));
+          }
+          return undefined;
+        },
+      },
+    },
+  );
 
   constructor() {
     this.fleetService.countries().subscribe({
       next: (countries) => this.countries.set(countries),
       error: () => this.error.set('Could not load the country list. Is the API running?'),
     });
-  }
-
-  protected submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-
-    const value = this.form.getRawValue();
-    this.submitting.set(true);
-    this.error.set(null);
-
-    this.authService
-      .register({
-        full_name: value.full_name,
-        email: value.email,
-        password: value.password,
-        age: Number(value.age),
-        country: value.country,
-        city: value.city,
-      })
-      .subscribe({
-        next: () => {
-          this.submitting.set(false);
-          void this.router.navigate(['/vehicles']);
-        },
-        error: (error: unknown) => {
-          this.submitting.set(false);
-          this.error.set(apiErrorMessage(error, 'Could not create the account.'));
-        },
-      });
   }
 }
