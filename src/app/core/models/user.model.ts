@@ -2,6 +2,9 @@ export interface User {
   id: number;
   email: string;
   full_name: string;
+  /** ISO date, e.g. 1985-04-12. */
+  date_of_birth: string;
+  /** Derived by the API from date_of_birth. */
   age: number;
   country: string;
   city: string;
@@ -13,7 +16,7 @@ export interface RegisterPayload {
   email: string;
   password: string;
   full_name: string;
-  age: number;
+  date_of_birth: string;
   country: string;
   city: string;
 }
@@ -25,7 +28,7 @@ export interface LoginPayload {
 
 export interface ProfileUpdate {
   full_name?: string;
-  age?: number;
+  date_of_birth?: string;
   country?: string;
   city?: string;
 }

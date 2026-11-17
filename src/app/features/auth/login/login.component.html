@@ -4,14 +4,17 @@
       <mat-progress-bar mode="indeterminate" />
     }
 
-    <mat-card-header>
-      <mat-card-title>Sign in</mat-card-title>
-      <mat-card-subtitle>Your fleet, your loads — one place.</mat-card-subtitle>
-    </mat-card-header>
-
     <mat-card-content>
+      <header class="auth-hero">
+        <span class="brand-mark">LI</span>
+        <div>
+          <h1>Sign in</h1>
+          <p class="auth-hero-sub">Your fleet, your loads — one place.</p>
+        </div>
+      </header>
+
       <form [formRoot]="loginForm" class="stack">
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
           <input matInput type="email" [formField]="loginForm.email" autocomplete="email" />
           <mat-icon matPrefix>mail</mat-icon>
@@ -20,7 +23,7 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline">
           <mat-label>Password</mat-label>
           <input
             matInput
@@ -38,7 +41,12 @@
           <p class="form-error">{{ message }}</p>
         }
 
-        <button mat-flat-button type="submit" class="full-width" [disabled]="loginForm().submitting()">
+        <button
+          mat-flat-button
+          type="submit"
+          class="submit-button"
+          [disabled]="loginForm().submitting()"
+        >
           Sign in
         </button>
       </form>

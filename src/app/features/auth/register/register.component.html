@@ -4,76 +4,120 @@
       <mat-progress-bar mode="indeterminate" />
     }
 
-    <mat-card-header>
-      <mat-card-title>Create your account</mat-card-title>
-      <mat-card-subtitle>Start with your driver profile — you can add vehicles next.</mat-card-subtitle>
-    </mat-card-header>
-
     <mat-card-content>
+      <header class="auth-hero">
+        <span class="brand-mark">LI</span>
+        <div>
+          <h1>Create your account</h1>
+          <p class="auth-hero-sub">Your fleet, your loads — one place.</p>
+        </div>
+      </header>
+
       <form [formRoot]="registerForm" class="stack">
-        <div class="grid-2">
-          <mat-form-field appearance="outline">
-            <mat-label>Full name</mat-label>
-            <input matInput type="text" [formField]="registerForm.full_name" autocomplete="name" />
-            @if (errorOf(registerForm.full_name); as message) {
-              <mat-error>{{ message }}</mat-error>
-            }
-          </mat-form-field>
+        <section class="form-section">
+          <h2 class="form-section-label">Driver</h2>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Age</mat-label>
-            <input matInput type="number" [formField]="registerForm.age" />
-            @if (errorOf(registerForm.age); as message) {
-              <mat-error>{{ message }}</mat-error>
-            }
-          </mat-form-field>
-        </div>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Email</mat-label>
-          <input matInput type="email" [formField]="registerForm.email" autocomplete="email" />
-          <mat-icon matPrefix>mail</mat-icon>
-          @if (errorOf(registerForm.email); as message) {
-            <mat-error>{{ message }}</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Password</mat-label>
-          <input
-            matInput
-            type="password"
-            [formField]="registerForm.password"
-            autocomplete="new-password"
-          />
-          <mat-icon matPrefix>lock</mat-icon>
-          <mat-hint>At least 8 characters</mat-hint>
-          @if (errorOf(registerForm.password); as message) {
-            <mat-error>{{ message }}</mat-error>
-          }
-        </mat-form-field>
-
-        <div class="grid-2">
-          <mat-form-field appearance="outline">
-            <mat-label>Country</mat-label>
-            <mat-select [formField]="registerForm.country">
-              @for (country of countries(); track country.code) {
-                <mat-option [value]="country.code">{{ country.name }}</mat-option>
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Full name</mat-label>
+              <input matInput type="text" [formField]="registerForm.full_name" autocomplete="name" />
+              @if (errorOf(registerForm.full_name); as message) {
+                <mat-error>{{ message }}</mat-error>
               }
-            </mat-select>
-            @if (errorOf(registerForm.country); as message) {
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Date of birth</mat-label>
+              <input
+                matInput
+                type="date"
+                [formField]="registerForm.date_of_birth"
+                autocomplete="bday"
+              />
+              <mat-hint>18 or older</mat-hint>
+              @if (errorOf(registerForm.date_of_birth); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </section>
+
+        <mat-divider />
+
+        <section class="form-section">
+          <h2 class="form-section-label">Sign-in</h2>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [formField]="registerForm.email" autocomplete="email" />
+            <mat-icon matPrefix>mail</mat-icon>
+            @if (errorOf(registerForm.email); as message) {
               <mat-error>{{ message }}</mat-error>
             }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>City</mat-label>
-            <input matInput type="text" [formField]="registerForm.city" autocomplete="address-level2" />
-            @if (errorOf(registerForm.city); as message) {
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              type="password"
+              [formField]="registerForm.password"
+              autocomplete="new-password"
+            />
+            <mat-icon matPrefix>lock</mat-icon>
+            <mat-hint>At least 8 characters</mat-hint>
+            @if (errorOf(registerForm.password); as message) {
               <mat-error>{{ message }}</mat-error>
             }
           </mat-form-field>
-        </div>
+        </section>
+
+        <mat-divider />
+
+        <section class="form-section">
+          <h2 class="form-section-label">Where you drive from</h2>
+
+          <div class="grid-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Country</mat-label>
+              <input
+                matInput
+                type="text"
+                [formField]="registerForm.country"
+                [matAutocomplete]="countryAutocomplete"
+                placeholder="Start typing…"
+                autocomplete="country-name"
+              />
+              <mat-icon matPrefix>public</mat-icon>
+              <mat-autocomplete #countryAutocomplete="matAutocomplete">
+                @for (country of filteredCountries(); track country.code) {
+                  <mat-option [value]="country.name">
+                    {{ country.name }}
+                    <span class="option-code">{{ country.code }}</span>
+                  </mat-option>
+                } @empty {
+                  <mat-option disabled>No country matches</mat-option>
+                }
+              </mat-autocomplete>
+              @if (errorOf(registerForm.country); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input
+                matInput
+                type="text"
+                [formField]="registerForm.city"
+                autocomplete="address-level2"
+              />
+              @if (errorOf(registerForm.city); as message) {
+                <mat-error>{{ message }}</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </section>
 
         @if (error(); as message) {
           <p class="form-error">{{ message }}</p>
@@ -82,7 +126,7 @@
         <button
           mat-flat-button
           type="submit"
-          class="full-width"
+          class="submit-button"
           [disabled]="registerForm().submitting()"
         >
           Create account

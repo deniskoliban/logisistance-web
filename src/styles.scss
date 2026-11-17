@@ -134,7 +134,7 @@ body {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 10px;
 }
 
 .grid-2 {
@@ -189,8 +189,65 @@ body {
 }
 
 .auth-card {
+  position: relative;
   width: 100%;
   max-width: 440px;
+  overflow: hidden;
+}
+
+/* Thin accent line keeps the card from looking like a plain white box. */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
+}
+
+.auth-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.auth-hero h1 {
+  margin: 0;
+  font: var(--mat-sys-headline-small);
+}
+
+.auth-hero-sub {
+  margin: 2px 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-section-label {
+  margin: 0 0 2px;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.submit-button {
+  width: 100%;
+  height: 46px;
+  border-radius: 999px;
+  margin-top: 6px;
+}
+
+.option-code {
+  margin-left: auto;
+  padding-left: 16px;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-label-small);
 }
 
 .auth-card-wide {

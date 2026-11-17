@@ -1,37 +1,40 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   FormField,
   FormRoot,
   TreeValidationResult,
   email,
   form,
-  max,
   maxLength,
-  min,
   minLength,
   required,
+  validate,
 } from '@angular/forms/signals';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { FleetService } from '../../../core/fleet/fleet.service';
 import { CountryOption } from '../../../core/models';
+import { validateDriverAge } from '../../../core/utils/age.util';
 import { apiErrorMessage } from '../../../core/utils/api-error.util';
+import { countryCodeFor, filterCountries } from '../../../core/utils/country.util';
 import { errorOf } from '../../../core/utils/form-error.util';
 
 interface RegisterModel {
   full_name: string;
+  date_of_birth: string;
   email: string;
   password: string;
-  age: number | null;
+  /** Country *name*, mapped to its ISO code on submit. */
   country: string;
   city: string;
 }
@@ -43,9 +46,10 @@ interface RegisterModel {
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
+    MatAutocompleteModule,
     MatButtonModule,
     MatIconModule,
+    MatDividerModule,
     MatProgressBarModule,
     FormRoot,
     FormField,
@@ -58,17 +62,22 @@ export class RegisterComponent {
   private readonly router = inject(Router);
 
   protected readonly countries = signal<CountryOption[]>([]);
-  protected readonly error = signal<string | null>(null);
-  protected readonly errorOf = errorOf;
 
   protected readonly model = signal<RegisterModel>({
     full_name: '',
+    date_of_birth: '',
     email: '',
     password: '',
-    age: null,
     country: '',
     city: '',
   });
+
+  protected readonly error = signal<string | null>(null);
+  protected readonly errorOf = errorOf;
+
+  protected readonly filteredCountries = computed(() =>
+    filterCountries(this.countries(), this.model().country),
+  );
 
   protected readonly registerForm = form(
     this.model,
@@ -77,6 +86,12 @@ export class RegisterComponent {
       minLength(path.full_name, 2, { message: 'At least 2 characters' });
       maxLength(path.full_name, 120, { message: 'Up to 120 characters' });
 
+      required(path.date_of_birth, { message: 'Date of birth is required' });
+      validate(path.date_of_birth, ({ value }) => {
+        const message = validateDriverAge(value());
+        return message ? { kind: 'driverAge', message } : null;
+      });
+
       required(path.email, { message: 'Email is required' });
       email(path.email, { message: 'Enter a valid email address' });
 
@@ -84,11 +99,12 @@ export class RegisterComponent {
       minLength(path.password, 8, { message: 'Use at least 8 characters' });
       maxLength(path.password, 128, { message: 'Up to 128 characters' });
 
-      required(path.age, { message: 'Age is required' });
-      min(path.age, 18, { message: 'Drivers must be at least 18' });
-      max(path.age, 100, { message: 'Drivers must be at most 100' });
-
-      required(path.country, { message: 'Select your country' });
+      required(path.country, { message: 'Country is required' });
+      validate(path.country, ({ value }) =>
+        countryCodeFor(this.countries(), value())
+          ? null
+          : { kind: 'country', message: 'Pick a country from the list' },
+      );
 
       required(path.city, { message: 'City is required' });
       minLength(path.city, 2, { message: 'At least 2 characters' });
@@ -99,16 +115,15 @@ export class RegisterComponent {
         action: async (): Promise<TreeValidationResult> => {
           this.error.set(null);
           const value = this.model();
+          const countryCode = countryCodeFor(this.countries(), value.country);
+          if (!countryCode) {
+            this.error.set('Pick a country from the list.');
+            return undefined;
+          }
+
           try {
             await firstValueFrom(
-              this.authService.register({
-                full_name: value.full_name,
-                email: value.email,
-                password: value.password,
-                age: Number(value.age),
-                country: value.country,
-                city: value.city,
-              }),
+              this.authService.register({ ...value, country: countryCode }),
             );
             await this.router.navigate(['/vehicles']);
           } catch (error: unknown) {

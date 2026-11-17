@@ -88,6 +88,15 @@ Conventions that follow from it:
 - Do **not** put `min`/`max` attributes on a `[formField]` input: Angular rejects it (NG8022). The
   bounds come from `min()`/`max()` in the schema. `step` and `type` are fine.
 
+### Domain fields with a rule behind them
+
+- **Dates of birth** are ISO `yyyy-mm-dd` strings in the model and validated with
+  `validateDriverAge()` (`core/utils/age.util.ts`), which mirrors the server's 18–100 rule. Age is
+  never stored or typed; the API derives it and the UI only displays it.
+- **Country** is an autocomplete over the API-served list, bound to the country *name* for
+  readability. Convert with `countryCodeFor()` on submit and validate that the typed value is a real
+  option, otherwise a free-text entry would silently become an invalid code.
+
 ### Responsive on phone, tablet and desktop
 
 Verified at 360 px, 768 px and 1440 px wide — always check all three before calling a screen done.
@@ -150,16 +159,26 @@ Light and dark come from the same markup:
 | --- | --- |
 | ![Fleet light](docs/screenshots/fleet-light.png) | ![Fleet dark](docs/screenshots/fleet-dark.png) |
 
-| Sign in | Fleet on a 360 px phone |
+| Sign in | Registration | Profile |
+| --- | --- | --- |
+| ![Sign in](docs/screenshots/login-light.png) | ![Registration](docs/screenshots/register-light.png) | ![Profile](docs/screenshots/profile-light.png) |
+
+| Register on a 360 px phone | Fleet on a 360 px phone |
 | --- | --- |
-| ![Sign in](docs/screenshots/login-light.png) | ![Fleet mobile](docs/screenshots/fleet-mobile.png) |
+| ![Register mobile](docs/screenshots/register-mobile.png) | ![Fleet mobile](docs/screenshots/fleet-mobile.png) |
 
 ## Behaviour
 
-- Registration collects name, email, password, age (18–100), country (EU/EEA/CH, loaded from the
-  API) and city; a successful sign-up signs the user in immediately.
+- Registration collects name, date of birth, email, password, country and city; a successful sign-up
+  signs the user in immediately. Age is never typed in — it is derived by the API from the date of
+  birth, so it cannot drift. The form blocks under-18 and future dates with a message from the same
+  schema rule the API enforces.
+- Country is a searchable autocomplete: typing `pol` narrows the list to Poland, matched on name
+  substring or exact code. The API stores ISO codes, the field shows readable names
+  (`core/utils/country.util.ts` maps between them).
 - The JWT is attached by a functional interceptor to every `/api/...` request and survives a page
-  reload through `localStorage`.
+  reload through `localStorage`. A `401` from the API clears the session and returns to `/login`, so
+  a stale token cannot leave the UI looking signed in.
 - `authGuard` protects `/profile` and `/vehicles` and remembers the attempted URL; `guestGuard`
   keeps signed-in users off `/login` and `/register`.
 - Destructive actions go through a Material dialog, results through `MatSnackBar`, server errors

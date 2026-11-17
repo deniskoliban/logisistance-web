@@ -24,7 +24,7 @@
 
       <mat-card-content>
         <form [formRoot]="profileForm" class="stack">
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="outline">
             <mat-label>Full name</mat-label>
             <input matInput type="text" [formField]="profileForm.full_name" autocomplete="name" />
             @if (errorOf(profileForm.full_name); as message) {
@@ -34,9 +34,14 @@
 
           <div class="grid-2">
             <mat-form-field appearance="outline">
-              <mat-label>Age</mat-label>
-              <input matInput type="number" [formField]="profileForm.age" />
-              @if (errorOf(profileForm.age); as message) {
+              <mat-label>Date of birth</mat-label>
+              <input
+                matInput
+                type="date"
+                [formField]="profileForm.date_of_birth"
+                autocomplete="bday"
+              />
+              @if (errorOf(profileForm.date_of_birth); as message) {
                 <mat-error>{{ message }}</mat-error>
               }
             </mat-form-field>
@@ -55,13 +60,27 @@
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline" class="full-width">
+          <mat-form-field appearance="outline">
             <mat-label>Country</mat-label>
-            <mat-select [formField]="profileForm.country">
-              @for (country of countries(); track country.code) {
-                <mat-option [value]="country.code">{{ country.name }}</mat-option>
+            <input
+              matInput
+              type="text"
+              [formField]="profileForm.country"
+              [matAutocomplete]="countryAutocomplete"
+              placeholder="Start typing…"
+              autocomplete="country-name"
+            />
+            <mat-icon matPrefix>public</mat-icon>
+            <mat-autocomplete #countryAutocomplete="matAutocomplete">
+              @for (country of filteredCountries(); track country.code) {
+                <mat-option [value]="country.name">
+                  {{ country.name }}
+                  <span class="option-code">{{ country.code }}</span>
+                </mat-option>
+              } @empty {
+                <mat-option disabled>No country matches</mat-option>
               }
-            </mat-select>
+            </mat-autocomplete>
             @if (errorOf(profileForm.country); as message) {
               <mat-error>{{ message }}</mat-error>
             }
@@ -94,8 +113,8 @@
               <span matListItemLine>{{ current.full_name }}</span>
             </mat-list-item>
             <mat-list-item>
-              <span matListItemTitle>Age</span>
-              <span matListItemLine>{{ current.age }}</span>
+              <span matListItemTitle>Date of birth</span>
+              <span matListItemLine>{{ current.date_of_birth }} ({{ current.age }} years)</span>
             </mat-list-item>
             <mat-list-item>
               <span matListItemTitle>Base</span>
