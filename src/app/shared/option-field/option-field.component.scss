@@ -1,0 +1,11 @@
+/* The host must stretch and the field inside must fill it: `mat-form-field` is inline-flex, so without
+   this it keeps its content width and spills over the neighbouring grid cell (seen at ~950 px, where
+   the make and model fields overlapped by 20 px). Same rule as `country-field.component.scss`. */
+:host {
+  display: block;
+  min-width: 0;
+}
+
+mat-form-field {
+  width: 100%;
+}

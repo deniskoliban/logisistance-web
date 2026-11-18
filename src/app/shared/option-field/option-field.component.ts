@@ -38,6 +38,7 @@ import { FormErrorPipe } from '../pipes/form-error.pipe';
     AutoSelectExactDirective,
   ],
   templateUrl: './option-field.component.html',
+  styleUrl: './option-field.component.scss',
 })
 export class OptionFieldComponent {
   /** The signal-forms field this input edits; its value is the option text. */
