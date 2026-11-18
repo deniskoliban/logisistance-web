@@ -71,7 +71,7 @@
     "payloadFromDocuments": "В свидетельстве это F.1 − G",
     "tractorVolume": "У тягача объём считается вместе с прицепом",
     "cargoShape": "Неправильная форма: колёсные арки или скошенная крыша уменьшают отсек",
-    "modification": "Кузов, кабина или мощность"
+    "modification": "В свидетельстве: D.2 и D.3"
   },
   "placeholders": {
     "fullName": "Jan Kowalski",
