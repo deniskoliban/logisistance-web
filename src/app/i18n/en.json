@@ -47,7 +47,7 @@
     "name": "Name",
     "make": "Make",
     "model": "Model",
-    "modification": "Modification",
+    "modification": "Type, variant, version",
     "year": "First registration",
     "vin": "VIN",
     "registrationCountry": "Registered in",
@@ -71,7 +71,7 @@
     "payloadFromDocuments": "In the registration document this is F.1 − G",
     "tractorVolume": "On a tractor unit the volume belongs to the trailer",
     "cargoShape": "Irregular: wheel arches or a sloped roof eat into the bay",
-    "modification": "Registration document: D.2 and D.3"
+    "modification": "In the registration document this is D.2"
   },
   "placeholders": {
     "fullName": "Jan Kowalski",

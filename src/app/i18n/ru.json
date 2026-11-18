@@ -47,7 +47,7 @@
     "name": "Название",
     "make": "Марка",
     "model": "Модель",
-    "modification": "Модификация",
+    "modification": "Тип, вариант, версия",
     "year": "Год первой регистрации",
     "vin": "VIN",
     "registrationCountry": "Страна регистрации",
@@ -71,7 +71,7 @@
     "payloadFromDocuments": "В свидетельстве это F.1 − G",
     "tractorVolume": "У тягача объём считается вместе с прицепом",
     "cargoShape": "Неправильная форма: колёсные арки или скошенная крыша уменьшают отсек",
-    "modification": "В свидетельстве: D.2 и D.3"
+    "modification": "В свидетельстве это D.2"
   },
   "placeholders": {
     "fullName": "Jan Kowalski",
