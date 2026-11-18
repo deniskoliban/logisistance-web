@@ -142,6 +142,15 @@ Conventions that follow from it:
   Validation uses `validateDriverAge()`, mirroring the server's 18–100 rule. Age is never stored or
   typed; the API derives it and the UI only displays it.
 
+- **One country and one city per user — the dislocation.** The MVP serves a self-employed carrier
+  (sole proprietor), so the country of residence doubles as the default starting point for load
+  search; the form says so in a hint under the section label. A company mode (one company, many
+  drivers and vehicles, plus a company registration country) is planned and deliberately absent.
+  The field is `app-country-field`: an autocomplete over the API-served list that shows the localised
+  *name* while exposing the ISO *code* through `[(code)]`, so no caller maps names to codes by hand.
+  `CountryCatalog` (`core/fleet/`) holds that list once for the field, the validators and the
+  name→code mapping on submit.
+
 ### Manual date entry with a mask
 
 Typing in the date field inserts the separators for you: `15031996` becomes `15.03.1996` in Russian
@@ -158,16 +167,16 @@ Two implementation notes worth keeping:
   `dropSpecialCharacters: false`) and rewrites the element text and caret itself, so no value
   accessor is involved and the picker stays untouched.
 - **The mask is positional.** Editing a digit in the middle reflows the rest of the date; the common
-  path — type left to right, backspace from the end — behaves exactly as expected. A segmented input
-  would be the next step if middle edits ever matter.
-- **One country and one city per user — the dislocation.** The MVP serves a self-employed carrier
-  (sole proprietor), so the country of residence doubles as the default starting point for load
-  search; the form says so in a hint under the section label. A company mode (one company, many
-  drivers and vehicles, plus a company registration country) is planned and deliberately absent.
-  The field is `app-country-field`: an autocomplete over the API-served list that shows the localised
-  *name* while exposing the ISO *code* through `[(code)]`, so no caller maps names to codes by hand.
-  `CountryCatalog` (`core/fleet/`) holds that list once for the field, the validators and the
-  name→code mapping on submit.
+  path — type left to right, backspace from the end — behaves exactly as expected.
+
+**Segmented editing — reviewed, deferred.** True segment behaviour (type `15`, the cursor hops to the
+month, arrows move between segments, backspace deletes across a separator) is not implemented, by
+decision: the positional mask covers the common path. The options were checked for when it matters:
+Maskito's `maskitoDateOptionsGenerator` (smallest diff — keeps the Material picker and the
+per-language format, replaces only the mask engine), the native `<input type="date">` with
+`MatCalendar` in an overlay (best on phones, drops ngx-mask, but the format follows the OS locale
+instead of the UI language), or three custom day/month/year inputs (full control, all edge cases and
+a11y on us).
 
 ### Typing a whole option selects it
 
