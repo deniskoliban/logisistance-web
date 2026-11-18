@@ -80,165 +80,20 @@ follows the CSS `color-scheme` property. That gives both themes from a single `m
 - Everything is styled through Material system tokens (`--mat-sys-*`); there is no hand-written
   colour palette to keep in sync.
 
-## Standing UI rules
+## Dev conventions
 
-These are not one-off decisions — every new screen has to follow them.
+The rulebook for this project — file naming, Signal Forms rules, i18n rules, styling, responsiveness,
+testing and the traps that already cost time — lives in the workspace `docs/` folder next to both
+repositories:
 
-### Signal Forms for every form
+- `docs/CONVENTIONS.md` — how to write code here
+- `docs/GOTCHAS.md` — known traps (Material, forms, i18n, tooling)
+- `docs/notes/date-input.md` — everything about the date field, mask and picker
+- `docs/STATE.md` / `docs/PLAN.md` — what is built, what is next
 
-Forms use `@angular/forms/signals`, not `ReactiveFormsModule`:
-
-```ts
-protected readonly model = signal<LoginModel>({ email: '', password: '' });
-
-protected readonly loginForm = form(this.model, (path) => {
-  required(path.email, { message: 'Email is required' });
-  email(path.email, { message: 'Enter a valid email address' });
-}, { submission: { action: async () => { /* call the API */ } } });
-```
-
-```html
-<form [formRoot]="loginForm">
-  <mat-form-field appearance="outline">
-    <mat-label>{{ t('fields.email') }}</mat-label>
-    <input matInput type="email" [formField]="loginForm.email" />
-    @if (errorOf(loginForm.email, t); as message) {
-      <mat-error>{{ message }}</mat-error>
-    }
-  </mat-form-field>
-</form>
-```
-
-Conventions that follow from it:
-
-- The model is a `signal`; the tree reads it, writes it, and stays the single source of truth.
-- Validation lives in the schema function ("logic rules"), so field state, Material's error state and
-  the native attributes are all derived from one place.
-- `[formRoot]` on `<form>` handles `submit` (also on Enter) and runs `submission.action` only when
-  valid; the pending flag is `form().submitting()`.
-- `errorOf(field, t)` (`core/utils/form-error.util.ts`) returns the first message once a field is
-  touched and invalid — translated from the error *kind*, never from a stored string.
-- After a successful create, reset with `model.set(...)` **and** `form().reset()` — the second call
-  clears `touched`/`dirty`, otherwise the emptied form immediately flashes validation errors.
-- Do **not** put `min`/`max` attributes on a `[formField]` input: Angular rejects it (NG8022). The
-  bounds come from `min()`/`max()` in the schema. `step` and `type` are fine.
-
-### Localised text
-
-- No literal UI text in templates and no `*transloco` directive: use the `transloco` pipe (or one of
-  `formError`, `plural`, `localizedNumber`) and add the key to **both** `i18n/en.json` and
-  `i18n/ru.json`. `dictionaries.spec.ts` fails the build if the two files drift apart (plural
-  categories excepted).
-- No helper calls in templates either: anything derived (labels, formatted dates, counts) is a
-  `computed()` signal or a pipe, because a method call in a template re-runs on every change
-  detection cycle and hides the dependency from Angular's reactivity.
-- Counted nouns go through the `plural` pipe, numbers through `localizedNumber`, dates through
-  `formatDate()`/the date picker.
-
-### Domain fields with a rule behind them
-
-- **Dates of birth** are `Date | null` in the model (a Material date picker, with manual typing also
-  allowed) and are converted with `toIsoDate()` on submit so no timezone shifts a birthday by a day.
-  Validation uses `validateDriverAge()`, mirroring the server's 18–100 rule. Age is never stored or
-  typed; the API derives it and the UI only displays it.
-
-- **One country and one city per user — the dislocation.** The MVP serves a self-employed carrier
-  (sole proprietor), so the country of residence doubles as the default starting point for load
-  search; the form says so in a hint under the section label. A company mode (one company, many
-  drivers and vehicles, plus a company registration country) is planned and deliberately absent.
-  The field is `app-country-field`: an autocomplete over the API-served list that shows the localised
-  *name* while exposing the ISO *code* through `[(code)]`, so no caller maps names to codes by hand.
-  `CountryCatalog` (`core/fleet/`) holds that list once for the field, the validators and the
-  name→code mapping on submit.
-
-### Manual date entry with a mask
-
-Typing in the date field inserts the separators for you: `15031996` becomes `15.03.1996` in Russian
-and `03/15/1996` in English, with the caret following the digits. The mask comes from
-`dateInputMask(locale)`, so it always matches what the Material date adapter can parse, and a typed
-date is parsed while typing: opening the calendar afterwards shows that month with the day selected.
-
-Three implementation notes worth keeping:
-
-- **The ngx-mask directive itself cannot be used here.** It registers as a
-  `FormValueControl<string | number | null>`, which collides with `MatDatepickerInput` (a `Date`
-  control) on the same `[formField]` input — the compiler rejects the binding. `DateMaskDirective`
-  therefore takes only ngx-mask's formatting engine (`NgxMaskService.applyMask`, configured with
-  `dropSpecialCharacters: false`) and rewrites the element text and caret itself, so no value
-  accessor is involved and the picker stays untouched. After rewriting it re-dispatches `input`, so
-  the picker parses the masked text even when its own listener ran first.
-- **Material's native adapter cannot parse localised input.** `NativeDateAdapter.parse` is
-  `new Date(Date.parse(value))`, which ignores the locale: typed `12.05.1990` was read as US
-  `mm.dd.yyyy` and silently became 5 December, and `15.01.1996` was simply invalid. `LocalizedDateAdapter`
-  (`core/dates/`) overrides `parse` to read the numbers in the order the locale prints them, and
-  rejects impossible dates instead of rolling them over.
-- **`[startAt]` must follow the current value.** Material opens the calendar on `startAt` even when
-  the field already holds a date, which made a typed date look lost. `startAt` is a computed
-  `value ?? 30 years ago`, so a filled field opens on its own month and an empty one opens where a
-  birth date is plausible.
-
-**The mask is positional.** Editing a digit in the middle reflows the rest of the date; the common
-path — type left to right, backspace from the end — behaves exactly as expected.
-
-**Segmented editing — reviewed, deferred.** True segment behaviour (type `15`, the cursor hops to the
-month, arrows move between segments, backspace deletes across a separator) is not implemented, by
-decision: the positional mask covers the common path. The options were checked for when it matters:
-Maskito's `maskitoDateOptionsGenerator` (smallest diff — keeps the Material picker and the
-per-language format, replaces only the mask engine), the native `<input type="date">` with
-`MatCalendar` in an overlay (best on phones, drops ngx-mask, but the format follows the OS locale
-instead of the UI language), or three custom day/month/year inputs (full control, all edge cases and
-a11y on us).
-
-### Typing a whole option selects it
-
-`autoSelectExact` (`shared/directives/`) makes a fully typed label a real selection: type `Poland`
-(or `польша`, in any case, with stray spaces) and the field becomes that option without a click.
-Half-typed text stays free text, so the list keeps narrowing.
-
-```html
-<input matInput [formField]="form.country" [matAutocomplete]="auto"
-       [autoSelectExact]="optionItems()" />
-```
-
-Two details worth keeping when reusing it elsewhere:
-
-- The option list is passed as **data**, not read from the rendered `mat-option`s: the panel only
-  renders while open, so on the first keystroke the rendered list is still empty.
-- It reacts to the bound field value rather than to DOM `input` events, because `[formField]` writes
-  the model from its own listener and a second listener would race with it.
-
-### Responsive on phone, tablet and desktop
-
-Verified at 360 px, 768 px and 1440 px wide — always check all three before calling a screen done.
-
-| Breakpoint | Behaviour |
-| --- | --- |
-| ≤ 900 px | `.split` becomes one column, page header stacks, the driver name leaves the toolbar |
-| ≤ 620 px | 2/3-column form grids collapse to one column, nav labels go icon-only, smaller page padding |
-| ≤ 400 px | nav links tighten, the profile identity block is hidden |
-
-Below 360 px the layout stops shrinking on purpose: `body { min-width: 360px }` makes a narrower
-window scroll horizontally instead of compressing the design into unusable fields.
-
-Rules of thumb used here: no horizontal scrolling between 360 px and desktop (checked with
-`scrollWidth > clientWidth`), grids that hold long labels use `auto-fit minmax(...)` instead of a
-fixed column count so no language gets its labels clipped, form fields are always full width inside
-their grid cell, and toolbars never wrap into two rows.
-
-## File naming conventions
-
-| Kind | Pattern | Example |
-| --- | --- | --- |
-| Component | `*.component.ts` + `.html` (+ `.scss` when needed) | `profile.component.ts` |
-| Unit test | `*.spec.ts` next to the file | `app.component.spec.ts` |
-| Service | `*.service.ts` | `auth.service.ts`, `fleet.service.ts`, `theme.service.ts` |
-| Route guard | `*.guard.ts` | `auth.guard.ts`, `guest.guard.ts` |
-| HTTP interceptor | `*.interceptor.ts` | `auth.interceptor.ts` |
-| Pure helper | `*.util.ts` | `api-error.util.ts`, `form-error.util.ts` |
-| API type | `*.model.ts` (+ barrel `index.ts`) | `vehicle.model.ts` |
-
-Angular 22 would scaffold `app.ts`; this project uses the long-standing `*.component.ts`
-convention instead, and keeps every file self-describing.
+The short version, so a reader of this repo alone is not lost: `*.component.ts` file names, Signal Forms
+for every form (no `ReactiveFormsModule`), Transloco pipes in templates, Material tokens for all styling,
+usable from 360 px up, both test suites green before a change lands.
 
 ## Layout
 
@@ -299,6 +154,8 @@ The same markup in both languages — only the dictionaries change:
 
 ## Roadmap
 
-Freight search, route planning and backhaul matching come next. The API types in
-`core/models` are currently written by hand; once the contract starts moving they should be
+Freight search, routing and backhaul matching come next; the ordered plan (CI, migrations, provider
+adapters, then features) lives in `docs/PLAN.md` in the workspace folder that holds both repositories.
+
+The API types in `core/models` are still written by hand; once the contract starts moving they should be
 generated from the API's `/openapi.json` with `openapi-typescript`.
