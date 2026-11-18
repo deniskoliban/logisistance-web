@@ -61,6 +61,23 @@
     "typeToSearch": "Start typing…",
     "dislocation": "Your country and city are the default starting point for load search."
   },
+  "placeholders": {
+    "fullName": "John Smith",
+    "date": "MM/DD/YYYY",
+    "email": "you@example.com",
+    "city": "Berlin",
+    "vehicleName": "MAN TGX 18.440",
+    "plate": "AB 1234 CD",
+    "payload": "24000",
+    "volume": "82.5",
+    "range": "1500",
+    "length": "16.50",
+    "width": "2.55",
+    "height": "4.00",
+    "cargoLength": "13.60",
+    "cargoWidth": "2.40",
+    "cargoHeight": "2.70"
+  },
   "errors": {
     "required": "This field is required",
     "email": "Enter a valid email address",

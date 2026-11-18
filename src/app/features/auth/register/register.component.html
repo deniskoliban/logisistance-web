@@ -19,22 +19,29 @@
           <p class="form-section-hint">{{ 'hints.dislocation' | transloco }}</p>
 
           <div class="grid-2">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.fullName' | transloco }}</mat-label>
-              <input matInput type="text" [formField]="registerForm.full_name" autocomplete="name" />
+              <input
+                matInput
+                type="text"
+                [formField]="registerForm.full_name"
+                [placeholder]="'placeholders.fullName' | transloco"
+                autocomplete="name"
+              />
               @let fullNameError = registerForm.full_name | formError;
               @if (fullNameError) {
                 <mat-error>{{ fullNameError }}</mat-error>
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.dateOfBirth' | transloco }}</mat-label>
               <input
                 matInput
                 [formField]="registerForm.date_of_birth"
                 [matDatepicker]="dateOfBirthPicker"
                 [appDateMask]="dateMask()"
+                [placeholder]="'placeholders.date' | transloco"
                 inputmode="numeric"
               />
               <mat-datepicker-toggle matIconSuffix [for]="dateOfBirthPicker" />
@@ -54,12 +61,13 @@
               [(code)]="residenceCode"
             />
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.city' | transloco }}</mat-label>
               <input
                 matInput
                 type="text"
                 [formField]="registerForm.city"
+                [placeholder]="'placeholders.city' | transloco"
                 autocomplete="address-level2"
               />
               @let cityError = registerForm.city | formError;
@@ -75,9 +83,15 @@
         <section class="form-section">
           <h2 class="form-section-label">{{ 'register.sectionSignIn' | transloco }}</h2>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" floatLabel="always">
             <mat-label>{{ 'fields.email' | transloco }}</mat-label>
-            <input matInput type="email" [formField]="registerForm.email" autocomplete="email" />
+            <input
+              matInput
+              type="email"
+              [formField]="registerForm.email"
+              [placeholder]="'placeholders.email' | transloco"
+              autocomplete="email"
+            />
             <mat-icon matPrefix>mail</mat-icon>
             @let emailError = registerForm.email | formError;
             @if (emailError) {
@@ -85,16 +99,16 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" floatLabel="always">
             <mat-label>{{ 'fields.password' | transloco }}</mat-label>
             <input
               matInput
               type="password"
               [formField]="registerForm.password"
+              [placeholder]="'hints.password8' | transloco"
               autocomplete="new-password"
             />
             <mat-icon matPrefix>lock</mat-icon>
-            <mat-hint>{{ 'hints.password8' | transloco }}</mat-hint>
             @let passwordError = registerForm.password | formError;
             @if (passwordError) {
               <mat-error>{{ passwordError }}</mat-error>

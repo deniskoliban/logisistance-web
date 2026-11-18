@@ -14,9 +14,15 @@
       </header>
 
       <form [formRoot]="loginForm" class="stack">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>{{ 'fields.email' | transloco }}</mat-label>
-          <input matInput type="email" [formField]="loginForm.email" autocomplete="email" />
+          <input
+            matInput
+            type="email"
+            [formField]="loginForm.email"
+            [placeholder]="'placeholders.email' | transloco"
+            autocomplete="email"
+          />
           <mat-icon matPrefix>mail</mat-icon>
           @let emailError = loginForm.email | formError;
           @if (emailError) {
@@ -24,12 +30,13 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" floatLabel="always">
           <mat-label>{{ 'fields.password' | transloco }}</mat-label>
           <input
             matInput
             type="password"
             [formField]="loginForm.password"
+            [placeholder]="'hints.password8' | transloco"
             autocomplete="current-password"
           />
           <mat-icon matPrefix>lock</mat-icon>

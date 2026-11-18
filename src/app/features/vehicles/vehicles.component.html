@@ -29,18 +29,28 @@
       <mat-card-content>
         <form [formRoot]="vehicleForm" class="stack">
           <div class="grid-2">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.name' | transloco }}</mat-label>
-              <input matInput type="text" [formField]="vehicleForm.label" placeholder="MAN TGX" />
+              <input
+                matInput
+                type="text"
+                [formField]="vehicleForm.label"
+                [placeholder]="'placeholders.vehicleName' | transloco"
+              />
               @let labelError = vehicleForm.label | formError;
               @if (labelError) {
                 <mat-error>{{ labelError }}</mat-error>
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.plate' | transloco }}</mat-label>
-              <input matInput type="text" [formField]="vehicleForm.plate" placeholder="WGM 12345" />
+              <input
+                matInput
+                type="text"
+                [formField]="vehicleForm.plate"
+                [placeholder]="'placeholders.plate' | transloco"
+              />
               @let plateError = vehicleForm.plate | formError;
               @if (plateError) {
                 <mat-error>{{ plateError }}</mat-error>
@@ -49,7 +59,7 @@
           </div>
 
           <div class="grid-2">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.vehicleType' | transloco }}</mat-label>
               <mat-select [formField]="vehicleForm.vehicle_type">
                 @for (option of vehicleTypes(); track option.value) {
@@ -60,7 +70,7 @@
               </mat-select>
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.bodyType' | transloco }}</mat-label>
               <mat-select [formField]="vehicleForm.body_type">
                 @for (option of bodyTypes(); track option.value) {
@@ -73,23 +83,39 @@
           </div>
 
           <div class="grid-auto">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.payload' | transloco }}</mat-label>
-              <input matInput type="number" [formField]="vehicleForm.payload_kg" />
+              <input
+                matInput
+                type="number"
+                [formField]="vehicleForm.payload_kg"
+                [placeholder]="'placeholders.payload' | transloco"
+              />
               @let payloadError = vehicleForm.payload_kg | formError;
               @if (payloadError) {
                 <mat-error>{{ payloadError }}</mat-error>
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.volume' | transloco }}</mat-label>
-              <input matInput type="number" [formField]="vehicleForm.volume_m3" step="0.1" />
+              <input
+                matInput
+                type="number"
+                [formField]="vehicleForm.volume_m3"
+                step="0.1"
+                [placeholder]="'placeholders.volume' | transloco"
+              />
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.range' | transloco }}</mat-label>
-              <input matInput type="number" [formField]="vehicleForm.max_range_km" />
+              <input
+                matInput
+                type="number"
+                [formField]="vehicleForm.max_range_km"
+                [placeholder]="'placeholders.range' | transloco"
+              />
             </mat-form-field>
           </div>
 
@@ -100,42 +126,68 @@
 
             <p class="dimensions-subhead">{{ 'vehicles.overallVehicle' | transloco }}</p>
             <div class="grid-auto">
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>{{ 'fields.length' | transloco }}</mat-label>
-                <input matInput type="number" [formField]="vehicleForm.length_m" step="0.01" />
+                <input
+                  matInput
+                  type="number"
+                  [formField]="vehicleForm.length_m"
+                  step="0.01"
+                  [placeholder]="'placeholders.length' | transloco"
+                />
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>{{ 'fields.width' | transloco }}</mat-label>
-                <input matInput type="number" [formField]="vehicleForm.width_m" step="0.01" />
+                <input
+                  matInput
+                  type="number"
+                  [formField]="vehicleForm.width_m"
+                  step="0.01"
+                  [placeholder]="'placeholders.width' | transloco"
+                />
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>{{ 'fields.height' | transloco }}</mat-label>
-                <input matInput type="number" [formField]="vehicleForm.height_m" step="0.01" />
+                <input
+                  matInput
+                  type="number"
+                  [formField]="vehicleForm.height_m"
+                  step="0.01"
+                  [placeholder]="'placeholders.height' | transloco"
+                />
               </mat-form-field>
             </div>
 
             <p class="dimensions-subhead">{{ 'vehicles.cargoCompartment' | transloco }}</p>
             <div class="grid-auto">
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>{{ 'fields.length' | transloco }}</mat-label>
                 <input
                   matInput
                   type="number"
                   [formField]="vehicleForm.cargo_length_m"
                   step="0.01"
+                  [placeholder]="'placeholders.cargoLength' | transloco"
                 />
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>{{ 'fields.width' | transloco }}</mat-label>
-                <input matInput type="number" [formField]="vehicleForm.cargo_width_m" step="0.01" />
+                <input
+                  matInput
+                  type="number"
+                  [formField]="vehicleForm.cargo_width_m"
+                  step="0.01"
+                  [placeholder]="'placeholders.cargoWidth' | transloco"
+                />
               </mat-form-field>
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" floatLabel="always">
                 <mat-label>{{ 'fields.height' | transloco }}</mat-label>
                 <input
                   matInput
                   type="number"
                   [formField]="vehicleForm.cargo_height_m"
                   step="0.01"
+                  [placeholder]="'placeholders.cargoHeight' | transloco"
                 />
               </mat-form-field>
             </div>
@@ -143,7 +195,13 @@
 
           <div class="actions">
             <button mat-flat-button type="submit" [disabled]="vehicleForm().submitting()">
-              <mat-icon>@if (editingId() === null) { add } @else { save }</mat-icon>
+              <mat-icon>
+                @if (editingId() === null) {
+                  add
+                } @else {
+                  save
+                }
+              </mat-icon>
               @if (vehicleForm().submitting()) {
                 {{ 'actions.saving' | transloco }}
               } @else if (editingId() === null) {
@@ -216,7 +274,9 @@
                     <div class="fact">
                       <dt>{{ 'vehicles.facts.cargo' | transloco }}</dt>
                       <dd>
-                        @if (vehicle.cargo_length_m && vehicle.cargo_width_m && vehicle.cargo_height_m) {
+                        @if (
+                          vehicle.cargo_length_m && vehicle.cargo_width_m && vehicle.cargo_height_m
+                        ) {
                           {{
                             'vehicles.weights.dimensions'
                               | transloco

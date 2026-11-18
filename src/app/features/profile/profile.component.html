@@ -25,22 +25,29 @@
       <mat-card-content>
         <form [formRoot]="profileForm" class="stack">
           <div class="grid-2">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.fullName' | transloco }}</mat-label>
-              <input matInput type="text" [formField]="profileForm.full_name" autocomplete="name" />
+              <input
+                matInput
+                type="text"
+                [formField]="profileForm.full_name"
+                [placeholder]="'placeholders.fullName' | transloco"
+                autocomplete="name"
+              />
               @let fullNameError = profileForm.full_name | formError;
               @if (fullNameError) {
                 <mat-error>{{ fullNameError }}</mat-error>
               }
             </mat-form-field>
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.dateOfBirth' | transloco }}</mat-label>
               <input
                 matInput
                 [formField]="profileForm.date_of_birth"
                 [matDatepicker]="dateOfBirthPicker"
                 [appDateMask]="dateMask()"
+                [placeholder]="'placeholders.date' | transloco"
                 inputmode="numeric"
               />
               <mat-datepicker-toggle matIconSuffix [for]="dateOfBirthPicker" />
@@ -61,12 +68,13 @@
               [(code)]="residenceCode"
             />
 
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" floatLabel="always">
               <mat-label>{{ 'fields.city' | transloco }}</mat-label>
               <input
                 matInput
                 type="text"
                 [formField]="profileForm.city"
+                [placeholder]="'placeholders.city' | transloco"
                 autocomplete="address-level2"
               />
               @let cityError = profileForm.city | formError;

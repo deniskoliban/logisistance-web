@@ -61,6 +61,23 @@
     "typeToSearch": "Начните вводить…",
     "dislocation": "Страна и город — ваша стартовая точка для поиска грузов."
   },
+  "placeholders": {
+    "fullName": "Иван Петров",
+    "date": "ДД.ММ.ГГГГ",
+    "email": "ivan@example.com",
+    "city": "Берлин",
+    "vehicleName": "MAN TGX 18.440",
+    "plate": "AB 1234 CD",
+    "payload": "24000",
+    "volume": "82.5",
+    "range": "1500",
+    "length": "16.50",
+    "width": "2.55",
+    "height": "4.00",
+    "cargoLength": "13.60",
+    "cargoWidth": "2.40",
+    "cargoHeight": "2.70"
+  },
   "errors": {
     "required": "Обязательное поле",
     "email": "Введите корректный адрес почты",
