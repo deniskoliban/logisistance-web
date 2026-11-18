@@ -93,7 +93,10 @@ export class ProfileComponent implements OnInit {
   protected readonly model = signal<ProfileModel>({
     full_name: this.authService.user()?.full_name ?? '',
     date_of_birth: fromIsoDate(this.authService.user()?.date_of_birth ?? ''),
-    country: '',
+    // Seeded with the localised name, not '': the country field reads text → code, and a known
+    // code paired with empty text is exactly the state it clears the selection in (`effect` order
+    // inside the child is not ours to rely on). See `GOTCHAS.md` G21.
+    country: countryName(this.authService.user()?.country ?? '', this.language()) ?? '',
     city: this.authService.user()?.city ?? '',
   });
 
