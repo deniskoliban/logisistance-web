@@ -62,9 +62,9 @@
     "dislocation": "Страна и город — ваша стартовая точка для поиска грузов."
   },
   "placeholders": {
-    "fullName": "Ivan Petrov",
+    "fullName": "Jan Kowalski",
     "date": "ДД.ММ.ГГГГ",
-    "email": "driver@example.com",
+    "email": "name@example.com",
     "city": "Berlin",
     "vehicleName": "MAN TGX 18.440",
     "plate": "AB 1234 CD",

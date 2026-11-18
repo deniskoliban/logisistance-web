@@ -62,9 +62,9 @@
     "dislocation": "Your country and city are the default starting point for load search."
   },
   "placeholders": {
-    "fullName": "Ivan Petrov",
+    "fullName": "Jan Kowalski",
     "date": "DD.MM.YYYY",
-    "email": "driver@example.com",
+    "email": "name@example.com",
     "city": "Berlin",
     "vehicleName": "MAN TGX 18.440",
     "plate": "AB 1234 CD",
