@@ -11,13 +11,13 @@ describe('isLatinText', () => {
     expect(isLatinText('AB 1234 CD')).toBe(true);
   });
 
-  it('rejects Cyrillic, Greek and CJK, which is the whole point of the rule', () => {
+  it('rejects other scripts, which is the whole point of the rule', () => {
     for (const text of ['Иван Петров', 'Польша', 'Αθήνα', '東京']) {
       expect(isLatinText(text)).toBe(false);
     }
   });
 
-  it('rejects a Latin name with one Cyrillic letter in it, not just all-Cyrillic text', () => {
+  it('rejects a Latin name that contains a single foreign letter', () => {
     expect(isLatinText('Ivan Пetrov')).toBe(false);
   });
 

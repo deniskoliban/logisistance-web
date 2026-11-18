@@ -90,7 +90,7 @@
     "ageTooYoung": "Drivers must be at least {{min}}",
     "ageTooOld": "Drivers must be at most {{max}}",
     "countryUnknown": "Pick a country from the list",
-    "notLatin": "Latin characters only — no Cyrillic",
+    "notLatin": "Latin characters only",
     "signInFailed": "Could not sign in.",
     "registerFailed": "Could not create the account.",
     "countriesFailed": "Could not load the country list.",

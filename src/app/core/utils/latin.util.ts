@@ -10,7 +10,7 @@
 /**
  * Allowed inside user data: Latin letters with their diacritics (`Gdańsk`, `François`), digits, and
  * the few separators real names and plates use (`O'Brien`, `van der Berg`, `MAN TGX 18.440`,
- * `AB 1234 CD`). Everything else — Cyrillic above all — is rejected.
+ * `AB 1234 CD`). Anything outside that — another script, a control character, an emoji — is out.
  */
 const LATIN_DATA = /^[\p{Script=Latin}\p{M}\d .,'’&/()#+-]*$/u;
 
