@@ -39,7 +39,7 @@ import {
   VehicleType,
 } from '../../core/models';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
-import { countryName } from '../../core/utils/country.util';
+import { countryLabel } from '../../core/utils/country.util';
 import { latinText } from '../../core/utils/latin.util';
 import {
   ConfirmDialogComponent,
@@ -198,7 +198,11 @@ export class VehiclesComponent implements OnInit {
     return this.countries()
       .map((country) => ({
         code: country.code,
-        name: countryName(country.code, language) ?? country.name,
+        name: countryLabel(
+          country.code,
+          (key, params) => this.transloco.translate(key, params),
+          language,
+        ),
       }))
       .sort((left, right) => left.name.localeCompare(right.name, language));
   });

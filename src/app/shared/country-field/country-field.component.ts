@@ -8,11 +8,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { CountryCatalog } from '../../core/fleet/country-catalog.service';
 import { SUPPORTED_LANGUAGES } from '../../core/i18n/languages';
-import {
-  countryName,
-  countryNameMatchesAnyLocale,
-  filterCountries,
-} from '../../core/utils/country.util';
+import { countryNameMatchesAnyLocale, filterCountries } from '../../core/utils/country.util';
 import { AutoSelectExactDirective } from '../directives/auto-select-exact.directive';
 import { MatchableOption } from '../directives/autocomplete-match.util';
 import { FormErrorPipe } from '../pipes/form-error.pipe';
@@ -86,12 +82,14 @@ export class CountryFieldComponent {
 
     // Code → text: a code set from outside (or a language switch) shows the localised name.
     effect(() => {
-      const language = this.transloco.activeLang();
+      this.transloco.activeLang();
       const code = this.code();
       if (!code) {
         return;
       }
-      const name = countryName(code, language);
+      // The catalog owns the naming rule (dictionaries first, `Intl` as the fallback), so the field
+      // and the rest of the app can never disagree about what a country is called.
+      const name = this.catalog.nameFor(code);
       if (name && name !== this.value()) {
         this.field()().value.set(name);
       }

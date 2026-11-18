@@ -25,7 +25,6 @@ import { CountryCatalog } from '../../core/fleet/country-catalog.service';
 import { DateMaskDirective } from '../../shared/directives/date-mask.directive';
 import { validateDriverAge } from '../../core/utils/age.util';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
-import { countryName } from '../../core/utils/country.util';
 import { dateInputMask, formatDate, fromIsoDate, toIsoDate } from '../../core/utils/date.util';
 import { errorOf } from '../../core/utils/form-error.util';
 import { latinText } from '../../core/utils/latin.util';
@@ -97,7 +96,7 @@ export class ProfileComponent implements OnInit {
     // Seeded with the localised name, not '': the country field reads text → code, and a known
     // code paired with empty text is exactly the state it clears the selection in (`effect` order
     // inside the child is not ours to rely on). See `GOTCHAS.md` G21.
-    country: countryName(this.authService.user()?.country ?? '', this.language()) ?? '',
+    country: this.countries.nameFor(this.authService.user()?.country ?? ''),
     city: this.authService.user()?.city ?? '',
   });
 
@@ -175,6 +174,6 @@ export class ProfileComponent implements OnInit {
     if (!code) {
       return '—';
     }
-    return countryName(code, this.language()) ?? code;
+    return this.countries.nameFor(code);
   }
 }
