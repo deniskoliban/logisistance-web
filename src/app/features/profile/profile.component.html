@@ -44,7 +44,7 @@
                 inputmode="numeric"
               />
               <mat-datepicker-toggle matIconSuffix [for]="dateOfBirthPicker" />
-              <mat-datepicker #dateOfBirthPicker />
+              <mat-datepicker #dateOfBirthPicker [startAt]="startAt()" />
               @let dateOfBirthError = profileForm.date_of_birth | formError;
               @if (dateOfBirthError) {
                 <mat-error>{{ dateOfBirthError }}</mat-error>

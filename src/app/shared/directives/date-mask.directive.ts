@@ -9,6 +9,11 @@ import { NgxMaskService } from 'ngx-mask';
  * directive only rewrites the element's text and caret, so the date picker keeps parsing the field
  * exactly as before; ngx-mask still supplies the formatting and caret-shift logic.
  *
+ * When the mask rewrote the text, an `input` event is re-dispatched so the picker parses the
+ * *masked* value even if its own listener ran before this one (listener order on the same element
+ * is registration order, which we do not control). Without it the picker keeps a value parsed from
+ * half-masked text.
+ *
  * ```html
  * <input matInput [formField]="form.date_of_birth" [matDatepicker]="picker"
  *        [appDateMask]="dateMask()" inputmode="numeric" />
@@ -48,6 +53,7 @@ export class DateMaskDirective {
       },
     );
 
+    // Re-dispatched events arrive with masked === raw, so this cannot loop.
     if (masked === raw) {
       return;
     }
@@ -55,5 +61,6 @@ export class DateMaskDirective {
     element.value = masked;
     const position = Math.max(0, Math.min(masked.length, caret + shift));
     element.setSelectionRange(position, position);
+    element.dispatchEvent(new Event('input', { bubbles: true }));
   }
 }

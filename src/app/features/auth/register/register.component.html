@@ -38,7 +38,7 @@
                 inputmode="numeric"
               />
               <mat-datepicker-toggle matIconSuffix [for]="dateOfBirthPicker" />
-              <mat-datepicker #dateOfBirthPicker [startAt]="startAt" />
+              <mat-datepicker #dateOfBirthPicker [startAt]="startAt()" />
               <mat-hint>{{ 'hints.age18' | transloco }}</mat-hint>
               @let dateOfBirthError = registerForm.date_of_birth | formError;
               @if (dateOfBirthError) {

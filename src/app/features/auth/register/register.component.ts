@@ -74,8 +74,13 @@ export class RegisterComponent {
   /** Manual-entry mask follows the date adapter's locale, so typed text stays parseable. */
   protected readonly dateMask = computed(() => dateInputMask(this.transloco.activeLang()));
 
-  /** Opens the calendar a plausible distance back instead of on the current month. */
-  protected readonly startAt = new Date(new Date().getFullYear() - 30, 0, 1);
+  /**
+   * Where the empty calendar opens. `startAt` must follow the current value, otherwise Material
+   * shows the start month instead of the selected date (the typed date would look "lost").
+   */
+  protected readonly startAt = computed(
+    () => this.model().date_of_birth ?? new Date(new Date().getFullYear() - 30, 0, 1),
+  );
 
   protected readonly model = signal<RegisterModel>({
     full_name: '',

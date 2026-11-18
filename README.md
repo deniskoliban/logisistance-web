@@ -155,19 +155,30 @@ Conventions that follow from it:
 
 Typing in the date field inserts the separators for you: `15031996` becomes `15.03.1996` in Russian
 and `03/15/1996` in English, with the caret following the digits. The mask comes from
-`dateInputMask(locale)`, so it always matches what the Material date adapter can parse; typing is
-still parsed by the picker on blur, and picking from the calendar keeps working.
+`dateInputMask(locale)`, so it always matches what the Material date adapter can parse, and a typed
+date is parsed while typing: opening the calendar afterwards shows that month with the day selected.
 
-Two implementation notes worth keeping:
+Three implementation notes worth keeping:
 
 - **The ngx-mask directive itself cannot be used here.** It registers as a
   `FormValueControl<string | number | null>`, which collides with `MatDatepickerInput` (a `Date`
   control) on the same `[formField]` input — the compiler rejects the binding. `DateMaskDirective`
   therefore takes only ngx-mask's formatting engine (`NgxMaskService.applyMask`, configured with
   `dropSpecialCharacters: false`) and rewrites the element text and caret itself, so no value
-  accessor is involved and the picker stays untouched.
-- **The mask is positional.** Editing a digit in the middle reflows the rest of the date; the common
-  path — type left to right, backspace from the end — behaves exactly as expected.
+  accessor is involved and the picker stays untouched. After rewriting it re-dispatches `input`, so
+  the picker parses the masked text even when its own listener ran first.
+- **Material's native adapter cannot parse localised input.** `NativeDateAdapter.parse` is
+  `new Date(Date.parse(value))`, which ignores the locale: typed `12.05.1990` was read as US
+  `mm.dd.yyyy` and silently became 5 December, and `15.01.1996` was simply invalid. `LocalizedDateAdapter`
+  (`core/dates/`) overrides `parse` to read the numbers in the order the locale prints them, and
+  rejects impossible dates instead of rolling them over.
+- **`[startAt]` must follow the current value.** Material opens the calendar on `startAt` even when
+  the field already holds a date, which made a typed date look lost. `startAt` is a computed
+  `value ?? 30 years ago`, so a filled field opens on its own month and an empty one opens where a
+  birth date is plausible.
+
+**The mask is positional.** Editing a digit in the middle reflows the rest of the date; the common
+path — type left to right, backspace from the end — behaves exactly as expected.
 
 **Segmented editing — reviewed, deferred.** True segment behaviour (type `15`, the cursor hops to the
 month, arrows move between segments, backspace deletes across a separator) is not implemented, by

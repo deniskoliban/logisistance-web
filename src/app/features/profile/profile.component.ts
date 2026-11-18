@@ -74,6 +74,11 @@ export class ProfileComponent implements OnInit {
   /** Manual-entry mask follows the date adapter's locale, so typed text stays parseable. */
   protected readonly dateMask = computed(() => dateInputMask(this.transloco.activeLang()));
 
+  /** Where the empty calendar opens; it must follow the value or Material shows the wrong month. */
+  protected readonly startAt = computed(
+    () => this.model().date_of_birth ?? new Date(new Date().getFullYear() - 30, 0, 1),
+  );
+
   protected readonly errorKey = signal<string | null>(null);
   protected readonly serverMessage = signal<string | null>(null);
   protected readonly errorOf = errorOf;
