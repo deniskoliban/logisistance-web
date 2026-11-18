@@ -27,195 +27,309 @@
       </mat-card-header>
 
       <mat-card-content>
-        <form [formRoot]="vehicleForm" class="stack">
-          <div class="grid-2">
-            <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label>{{ 'fields.name' | transloco }}</mat-label>
-              <input
-                matInput
-                type="text"
-                [formField]="vehicleForm.label"
-                [placeholder]="'placeholders.vehicleName' | transloco"
-              />
-              @let labelError = vehicleForm.label | formError;
-              @if (labelError) {
-                <mat-error>{{ labelError }}</mat-error>
-              }
-            </mat-form-field>
+        <form [formRoot]="vehicleForm">
+          <mat-stepper [linear]="false" class="vehicle-stepper">
+            <mat-step [label]="'vehicles.stepIdentity' | transloco">
+              <div class="step-body">
+                <div class="grid-2">
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.make' | transloco }}</mat-label>
+                    <mat-select
+                      [formField]="vehicleForm.make"
+                      (selectionChange)="onMakeChange($event.value)"
+                    >
+                      <mat-optgroup [label]="'vehicles.popularMakes' | transloco">
+                        @for (make of coreMakes(); track make.code) {
+                          <mat-option [value]="make.code">{{ make.name }}</mat-option>
+                        }
+                      </mat-optgroup>
+                      <mat-optgroup [label]="'vehicles.allMakes' | transloco">
+                        @for (make of otherMakes(); track make.code) {
+                          <mat-option [value]="make.code">{{ make.name }}</mat-option>
+                        }
+                      </mat-optgroup>
+                    </mat-select>
+                    @let makeError = vehicleForm.make | formError;
+                    @if (makeError) {
+                      <mat-error>{{ makeError }}</mat-error>
+                    }
+                  </mat-form-field>
 
-            <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label>{{ 'fields.plate' | transloco }}</mat-label>
-              <input
-                matInput
-                type="text"
-                [formField]="vehicleForm.plate"
-                [placeholder]="'placeholders.plate' | transloco"
-              />
-              @let plateError = vehicleForm.plate | formError;
-              @if (plateError) {
-                <mat-error>{{ plateError }}</mat-error>
-              }
-            </mat-form-field>
-          </div>
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.model' | transloco }}</mat-label>
+                    <mat-select [formField]="vehicleForm.model">
+                      @for (vehicleModel of models(); track vehicleModel.code) {
+                        <mat-option [value]="vehicleModel.code">
+                          {{ vehicleModel.name }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                    @let modelError = vehicleForm.model | formError;
+                    @if (modelError) {
+                      <mat-error>{{ modelError }}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
 
-          <div class="grid-2">
-            <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label>{{ 'fields.vehicleType' | transloco }}</mat-label>
-              <mat-select [formField]="vehicleForm.vehicle_type">
-                @for (option of vehicleTypes(); track option.value) {
-                  <mat-option [value]="option.value">
-                    {{ 'types.vehicle.' + option.value | transloco }}
-                  </mat-option>
+                <div class="grid-auto">
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.modification' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      [formField]="vehicleForm.modification"
+                      [placeholder]="'placeholders.modification' | transloco"
+                    />
+                    @let modificationError = vehicleForm.modification | formError;
+                    @if (modificationError) {
+                      <mat-error>{{ modificationError }}</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.year' | transloco }}</mat-label>
+                    <mat-select [formField]="vehicleForm.model_year">
+                      @for (year of yearOptions; track year) {
+                        <mat-option [value]="year">{{ year }}</mat-option>
+                      }
+                    </mat-select>
+                    @let yearError = vehicleForm.model_year | formError;
+                    @if (yearError) {
+                      <mat-error>{{ yearError }}</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.registrationCountry' | transloco }}</mat-label>
+                    <mat-select [formField]="vehicleForm.registration_country">
+                      @for (country of countryOptions(); track country.code) {
+                        <mat-option [value]="country.code">{{ country.name }}</mat-option>
+                      }
+                    </mat-select>
+                    @let countryError = vehicleForm.registration_country | formError;
+                    @if (countryError) {
+                      <mat-error>{{ countryError }}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <div class="grid-2">
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.plate' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      [formField]="vehicleForm.plate"
+                      [placeholder]="'placeholders.plate' | transloco"
+                    />
+                    @let plateError = vehicleForm.plate | formError;
+                    @if (plateError) {
+                      <mat-error>{{ plateError }}</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.vin' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="text"
+                      [formField]="vehicleForm.vin"
+                      [placeholder]="'placeholders.vin' | transloco"
+                      autocomplete="off"
+                      spellcheck="false"
+                    />
+                    <mat-hint>{{ 'hints.vin' | transloco }}</mat-hint>
+                    @let vinError = vehicleForm.vin | formError;
+                    @if (vinError) {
+                      <mat-error>{{ vinError }}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+              </div>
+
+              <div class="step-actions">
+                <button mat-flat-button type="button" matStepperNext>
+                  <mat-icon>arrow_forward</mat-icon>
+                  {{ 'vehicles.next' | transloco }}
+                </button>
+                @if (editingId() !== null) {
+                  <button mat-button type="button" (click)="cancelEdit()">
+                    {{ 'actions.cancel' | transloco }}
+                  </button>
                 }
-              </mat-select>
-            </mat-form-field>
+              </div>
+            </mat-step>
 
-            <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label>{{ 'fields.bodyType' | transloco }}</mat-label>
-              <mat-select [formField]="vehicleForm.body_type">
-                @for (option of bodyTypes(); track option.value) {
-                  <mat-option [value]="option.value">
-                    {{ 'types.body.' + option.value | transloco }}
-                  </mat-option>
+            <mat-step [label]="'vehicles.stepCapacity' | transloco">
+              <div class="step-body">
+                <div class="grid-2">
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.vehicleType' | transloco }}</mat-label>
+                    <mat-select [formField]="vehicleForm.vehicle_type">
+                      @for (option of vehicleTypes(); track option.value) {
+                        <mat-option [value]="option.value">
+                          {{ 'types.vehicle.' + option.value | transloco }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.bodyType' | transloco }}</mat-label>
+                    <mat-select [formField]="vehicleForm.body_type">
+                      @for (option of bodyTypes(); track option.value) {
+                        <mat-option [value]="option.value">
+                          {{ 'types.body.' + option.value | transloco }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                <div class="grid-auto">
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.payload' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      [formField]="vehicleForm.payload_kg"
+                      [placeholder]="'placeholders.payload' | transloco"
+                    />
+                    <mat-hint>{{ 'hints.payloadFromDocuments' | transloco }}</mat-hint>
+                    @let payloadError = vehicleForm.payload_kg | formError;
+                    @if (payloadError) {
+                      <mat-error>{{ payloadError }}</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.volume' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      [formField]="vehicleForm.volume_m3"
+                      step="0.1"
+                      [placeholder]="'placeholders.volume' | transloco"
+                    />
+                    @if (computedVolume(); as calculated) {
+                      <mat-hint>
+                        {{
+                          'vehicles.volumeFromDimensions'
+                            | transloco: { value: calculated | localizedNumber: 1 }
+                        }}
+                      </mat-hint>
+                    } @else if (model().vehicle_type === 'tractor_unit') {
+                      <mat-hint>{{ 'hints.tractorVolume' | transloco }}</mat-hint>
+                    }
+                    @let volumeError = vehicleForm.volume_m3 | formError;
+                    @if (volumeError) {
+                      <mat-error>{{ volumeError }}</mat-error>
+                    }
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.range' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      [formField]="vehicleForm.max_range_km"
+                      [placeholder]="'placeholders.range' | transloco"
+                    />
+                    @let rangeError = vehicleForm.max_range_km | formError;
+                    @if (rangeError) {
+                      <mat-error>{{ rangeError }}</mat-error>
+                    }
+                  </mat-form-field>
+                </div>
+
+                <p class="dimensions-subhead">{{ 'vehicles.cargoCompartment' | transloco }}</p>
+
+                <div class="grid-auto">
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.length' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      [formField]="vehicleForm.cargo_length_m"
+                      step="0.01"
+                      [placeholder]="'placeholders.cargoLength' | transloco"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.width' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      [formField]="vehicleForm.cargo_width_m"
+                      step="0.01"
+                      [placeholder]="'placeholders.cargoWidth' | transloco"
+                    />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" floatLabel="always">
+                    <mat-label>{{ 'fields.height' | transloco }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      [formField]="vehicleForm.cargo_height_m"
+                      step="0.01"
+                      [placeholder]="'placeholders.cargoHeight' | transloco"
+                    />
+                  </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" floatLabel="always" class="full-width">
+                  <mat-label>{{ 'fields.cargoShape' | transloco }}</mat-label>
+                  <mat-select [formField]="vehicleForm.cargo_shape">
+                    <mat-option value="box">{{ 'vehicles.cargoShape.box' | transloco }}</mat-option>
+                    <mat-option value="irregular">
+                      {{ 'vehicles.cargoShape.irregular' | transloco }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>{{ 'hints.cargoShape' | transloco }}</mat-hint>
+                </mat-form-field>
+
+                @if (previewName(); as preview) {
+                  <p class="vehicle-preview">
+                    <mat-icon>local_shipping</mat-icon>
+                    {{ preview }}
+                  </p>
                 }
-              </mat-select>
-            </mat-form-field>
-          </div>
+              </div>
 
-          <div class="grid-auto">
-            <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label>{{ 'fields.payload' | transloco }}</mat-label>
-              <input
-                matInput
-                type="number"
-                [formField]="vehicleForm.payload_kg"
-                [placeholder]="'placeholders.payload' | transloco"
-              />
-              @let payloadError = vehicleForm.payload_kg | formError;
-              @if (payloadError) {
-                <mat-error>{{ payloadError }}</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label>{{ 'fields.volume' | transloco }}</mat-label>
-              <input
-                matInput
-                type="number"
-                [formField]="vehicleForm.volume_m3"
-                step="0.1"
-                [placeholder]="'placeholders.volume' | transloco"
-              />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" floatLabel="always">
-              <mat-label>{{ 'fields.range' | transloco }}</mat-label>
-              <input
-                matInput
-                type="number"
-                [formField]="vehicleForm.max_range_km"
-                [placeholder]="'placeholders.range' | transloco"
-              />
-            </mat-form-field>
-          </div>
-
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>{{ 'vehicles.dimensions' | transloco }}</mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <p class="dimensions-subhead">{{ 'vehicles.overallVehicle' | transloco }}</p>
-            <div class="grid-auto">
-              <mat-form-field appearance="outline" floatLabel="always">
-                <mat-label>{{ 'fields.length' | transloco }}</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [formField]="vehicleForm.length_m"
-                  step="0.01"
-                  [placeholder]="'placeholders.length' | transloco"
-                />
-              </mat-form-field>
-              <mat-form-field appearance="outline" floatLabel="always">
-                <mat-label>{{ 'fields.width' | transloco }}</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [formField]="vehicleForm.width_m"
-                  step="0.01"
-                  [placeholder]="'placeholders.width' | transloco"
-                />
-              </mat-form-field>
-              <mat-form-field appearance="outline" floatLabel="always">
-                <mat-label>{{ 'fields.height' | transloco }}</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [formField]="vehicleForm.height_m"
-                  step="0.01"
-                  [placeholder]="'placeholders.height' | transloco"
-                />
-              </mat-form-field>
-            </div>
-
-            <p class="dimensions-subhead">{{ 'vehicles.cargoCompartment' | transloco }}</p>
-            <div class="grid-auto">
-              <mat-form-field appearance="outline" floatLabel="always">
-                <mat-label>{{ 'fields.length' | transloco }}</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [formField]="vehicleForm.cargo_length_m"
-                  step="0.01"
-                  [placeholder]="'placeholders.cargoLength' | transloco"
-                />
-              </mat-form-field>
-              <mat-form-field appearance="outline" floatLabel="always">
-                <mat-label>{{ 'fields.width' | transloco }}</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [formField]="vehicleForm.cargo_width_m"
-                  step="0.01"
-                  [placeholder]="'placeholders.cargoWidth' | transloco"
-                />
-              </mat-form-field>
-              <mat-form-field appearance="outline" floatLabel="always">
-                <mat-label>{{ 'fields.height' | transloco }}</mat-label>
-                <input
-                  matInput
-                  type="number"
-                  [formField]="vehicleForm.cargo_height_m"
-                  step="0.01"
-                  [placeholder]="'placeholders.cargoHeight' | transloco"
-                />
-              </mat-form-field>
-            </div>
-          </mat-expansion-panel>
-
-          <div class="actions">
-            <button mat-flat-button type="submit" [disabled]="vehicleForm().submitting()">
-              <mat-icon>
-                @if (editingId() === null) {
-                  add
-                } @else {
-                  save
+              <div class="actions">
+                <button
+                  mat-flat-button
+                  type="submit"
+                  [disabled]="vehicleForm().submitting()"
+                  (click)="focusInvalidStep()"
+                >
+                  <mat-icon>
+                    @if (editingId() === null) {
+                      add
+                    } @else {
+                      save
+                    }
+                  </mat-icon>
+                  @if (vehicleForm().submitting()) {
+                    {{ 'actions.saving' | transloco }}
+                  } @else if (editingId() === null) {
+                    {{ 'actions.addVehicle' | transloco }}
+                  } @else {
+                    {{ 'actions.save' | transloco }}
+                  }
+                </button>
+                <button mat-button type="button" matStepperPrevious>
+                  <mat-icon>arrow_back</mat-icon>
+                  {{ 'vehicles.back' | transloco }}
+                </button>
+                @if (editingId() !== null) {
+                  <button mat-button type="button" (click)="cancelEdit()">
+                    {{ 'actions.cancel' | transloco }}
+                  </button>
                 }
-              </mat-icon>
-              @if (vehicleForm().submitting()) {
-                {{ 'actions.saving' | transloco }}
-              } @else if (editingId() === null) {
-                {{ 'actions.addVehicle' | transloco }}
-              } @else {
-                {{ 'actions.save' | transloco }}
-              }
-            </button>
-            @if (editingId() !== null) {
-              <button mat-button type="button" (click)="cancelEdit()">
-                {{ 'actions.cancel' | transloco }}
-              </button>
-            }
-          </div>
+              </div>
+            </mat-step>
+          </mat-stepper>
         </form>
       </mat-card-content>
     </mat-card>
@@ -235,7 +349,7 @@
             @for (vehicle of vehicles(); track vehicle.id) {
               <mat-card appearance="outlined" class="vehicle-card">
                 <mat-card-header>
-                  <mat-card-title>{{ vehicle.label }}</mat-card-title>
+                  <mat-card-title>{{ vehicle.display_name }}</mat-card-title>
                   <mat-card-subtitle class="plate">{{ vehicle.plate }}</mat-card-subtitle>
                 </mat-card-header>
 
@@ -321,6 +435,11 @@
             }
           </div>
         }
+
+        <p class="catalog-credit">
+          {{ 'vehicles.catalogCredit' | transloco }}
+          <a href="https://vehiclesdb.com" target="_blank" rel="noopener">VehiclesDB</a>
+        </p>
       </mat-card-content>
     </mat-card>
   </div>

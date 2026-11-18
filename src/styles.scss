@@ -133,6 +133,12 @@ body {
   align-items: start;
 }
 
+/* A grid item defaults to `min-width: auto`, so a wide child (a stepper panel, a long label) makes
+   the column wider than the page instead of shrinking. Let the columns win. */
+.split > * {
+  min-width: 0;
+}
+
 .stack {
   display: flex;
   flex-direction: column;
@@ -342,6 +348,92 @@ body {
   letter-spacing: 0.06em;
 }
 
+/* ---------- vehicle register stepper ---------- */
+
+/* The stepper lives inside a card that already pads its content, so its own padding is dropped. */
+.vehicle-stepper {
+  background: transparent;
+}
+
+.vehicle-stepper .mat-horizontal-stepper-header-container {
+  margin-bottom: 4px;
+}
+
+.step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+/* A horizontal stepper sizes its panels by content, so a long label can push the whole card wider
+   than a 360 px phone. Constrain the panels and let the fields shrink instead (`GOTCHAS.md` G24). */
+.vehicle-stepper .mat-horizontal-stepper-wrapper {
+  min-width: 0;
+  /* The inactive panel is slid one panel-width to the right for the transition; a transform counts
+     towards the scrollable area, so without clipping it stretches the page on a 360 px phone. */
+  overflow: hidden;
+}
+
+.vehicle-stepper .mat-horizontal-stepper-content {
+  min-width: 0;
+}
+
+.step-body > *,
+.step-body .grid-2 > *,
+.step-body .grid-auto > * {
+  min-width: 0;
+}
+
+/* One action per step keeps the two-step flow readable; the submit stays on the last step. */
+.step-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 0 4px;
+}
+
+.vehicle-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+}
+
+.vehicle-preview mat-icon {
+  color: var(--mat-sys-primary);
+}
+
+/* Phones: the two step labels are the widest thing on the card, so tighten them rather than let
+   Material truncate "Характеристики" to "Характерист…". */
+@media (max-width: 620px) {
+  .vehicle-stepper .mat-horizontal-stepper-header {
+    padding: 0 6px;
+  }
+
+  .vehicle-stepper .mat-step-label {
+    font-size: 13px;
+  }
+
+  .vehicle-stepper .mat-step-icon {
+    margin-right: 4px;
+  }
+}
+
+/* CC BY attribution for the generated make/model catalogue (VehiclesDB). */
+.catalog-credit {
+  margin: 16px 0 0;
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-small);
+}
+
+.catalog-credit a {
+  color: var(--mat-sys-primary);
+}
 /* ---------- responsive ---------- */
 
 /* Tablet and below: single-column layout, tighter chrome. */
@@ -449,4 +541,3 @@ body {
     gap: 10px 12px;
   }
 }
-

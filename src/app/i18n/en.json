@@ -45,6 +45,12 @@
     "countryOfResidence": "Country of residence",
     "city": "City",
     "name": "Name",
+    "make": "Make",
+    "model": "Model",
+    "modification": "Modification",
+    "year": "First registration",
+    "vin": "VIN",
+    "registrationCountry": "Registered in",
     "plate": "Plate",
     "vehicleType": "Vehicle type",
     "bodyType": "Body type",
@@ -53,20 +59,24 @@
     "range": "Range (km)",
     "length": "Length (m)",
     "width": "Width (m)",
-    "height": "Height (m)"
+    "height": "Height (m)",
+    "cargoShape": "Cargo bay shape"
   },
   "hints": {
     "age18": "18 or older",
     "password8": "At least 8 characters",
     "typeToSearch": "Start typing…",
-    "dislocation": "Your country and city are the default starting point for load search."
+    "dislocation": "Your country and city are the default starting point for load search.",
+    "vin": "17 characters, no I, O or Q",
+    "payloadFromDocuments": "In the registration document this is F.1 − G",
+    "tractorVolume": "On a tractor unit the volume belongs to the trailer",
+    "cargoShape": "Irregular: wheel arches or a sloped roof eat into the bay"
   },
   "placeholders": {
     "fullName": "Jan Kowalski",
     "date": "DD.MM.YYYY",
     "email": "name@example.com",
     "city": "Berlin",
-    "vehicleName": "MAN TGX 18.440",
     "plate": "AB 1234 CD",
     "payload": "24000",
     "volume": "82.5",
@@ -76,7 +86,9 @@
     "height": "4.00",
     "cargoLength": "13.60",
     "cargoWidth": "2.40",
-    "cargoHeight": "2.70"
+    "cargoHeight": "2.70",
+    "modification": "18.440",
+    "vin": "WMA06XZZ0LM123456"
   },
   "errors": {
     "required": "This field is required",
@@ -91,6 +103,8 @@
     "ageTooOld": "Drivers must be at most {{max}}",
     "countryUnknown": "Pick a country from the list",
     "notLatin": "Latin characters only",
+    "vinLength": "A VIN has exactly 17 characters",
+    "vinFormat": "VIN may contain letters and digits, but not I, O or Q",
     "signInFailed": "Could not sign in.",
     "registerFailed": "Could not create the account.",
     "countriesFailed": "Could not load the country list.",
@@ -122,8 +136,18 @@
     },
     "addTitle": "Add a vehicle",
     "editTitle": "Edit vehicle",
-    "dimensions": "Dimensions (optional)",
-    "overallVehicle": "Overall vehicle",
+    "stepIdentity": "Vehicle",
+    "stepCapacity": "Capacity",
+    "next": "Next",
+    "back": "Back",
+    "popularMakes": "Common in the EU",
+    "allMakes": "All makes",
+    "catalogCredit": "Make and model lists:",
+    "volumeFromDimensions": "The bay dimensions give {{value}} m³",
+    "cargoShape": {
+      "box": "Rectangular",
+      "irregular": "Irregular (arches, sloped roof)"
+    },
     "cargoCompartment": "Cargo compartment",
     "registered": "Registered vehicles",
     "empty": "No vehicles yet. Add your truck or van to start matching loads to it.",

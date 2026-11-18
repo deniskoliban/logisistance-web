@@ -45,6 +45,12 @@
     "countryOfResidence": "Страна проживания",
     "city": "Город",
     "name": "Название",
+    "make": "Марка",
+    "model": "Модель",
+    "modification": "Модификация",
+    "year": "Год первой регистрации",
+    "vin": "VIN",
+    "registrationCountry": "Страна регистрации",
     "plate": "Госномер",
     "vehicleType": "Тип машины",
     "bodyType": "Тип кузова",
@@ -53,20 +59,24 @@
     "range": "Запас хода (км)",
     "length": "Длина (м)",
     "width": "Ширина (м)",
-    "height": "Высота (м)"
+    "height": "Высота (м)",
+    "cargoShape": "Форма отсека"
   },
   "hints": {
     "age18": "18 лет или старше",
     "password8": "Минимум 8 символов",
     "typeToSearch": "Начните вводить…",
-    "dislocation": "Страна и город — ваша стартовая точка для поиска грузов."
+    "dislocation": "Страна и город — ваша стартовая точка для поиска грузов.",
+    "vin": "17 символов, без I, O и Q",
+    "payloadFromDocuments": "В свидетельстве это F.1 − G",
+    "tractorVolume": "У тягача объём считается вместе с прицепом",
+    "cargoShape": "Неправильная форма: колёсные арки или скошенная крыша уменьшают отсек"
   },
   "placeholders": {
     "fullName": "Jan Kowalski",
     "date": "ДД.ММ.ГГГГ",
     "email": "name@example.com",
     "city": "Berlin",
-    "vehicleName": "MAN TGX 18.440",
     "plate": "AB 1234 CD",
     "payload": "24000",
     "volume": "82.5",
@@ -76,7 +86,9 @@
     "height": "4.00",
     "cargoLength": "13.60",
     "cargoWidth": "2.40",
-    "cargoHeight": "2.70"
+    "cargoHeight": "2.70",
+    "modification": "18.440",
+    "vin": "WMA06XZZ0LM123456"
   },
   "errors": {
     "required": "Обязательное поле",
@@ -91,6 +103,8 @@
     "ageTooOld": "Водитель должен быть не старше {{max}} лет",
     "countryUnknown": "Выберите страну из списка",
     "notLatin": "Только латинские символы",
+    "vinLength": "В VIN ровно 17 символов",
+    "vinFormat": "В VIN только буквы и цифры, без I, O и Q",
     "signInFailed": "Не удалось войти.",
     "registerFailed": "Не удалось создать аккаунт.",
     "countriesFailed": "Не удалось загрузить список стран.",
@@ -126,8 +140,18 @@
     },
     "addTitle": "Добавить машину",
     "editTitle": "Изменить машину",
-    "dimensions": "Габариты (необязательно)",
-    "overallVehicle": "Габариты машины",
+    "stepIdentity": "Машина",
+    "stepCapacity": "Характеристики",
+    "next": "Далее",
+    "back": "Назад",
+    "popularMakes": "Частые в ЕС",
+    "allMakes": "Все марки",
+    "catalogCredit": "Списки марок и моделей:",
+    "volumeFromDimensions": "Из габаритов отсека получается {{value}} м³",
+    "cargoShape": {
+      "box": "Прямоугольный",
+      "irregular": "Неправильной формы (арки, скошенная крыша)"
+    },
     "cargoCompartment": "Грузовой отсек",
     "registered": "Мои машины",
     "empty": "Машин пока нет. Добавьте грузовик или фургон, чтобы подбирать под него грузы.",
