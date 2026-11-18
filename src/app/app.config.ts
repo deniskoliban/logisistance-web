@@ -14,6 +14,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { authInterceptor } from './core/auth/auth.interceptor';
 import { LocalizedDateAdapter } from './core/dates/localized-date-adapter';
+import { FALLBACK_LANGUAGE, SUPPORTED_LANGUAGES } from './core/i18n/languages';
 import { BundledTranslocoLoader } from './core/i18n/transloco-json.loader';
 import { LanguageService } from './core/services/language.service';
 import { routes } from './app.routes';
@@ -31,9 +32,11 @@ export const appConfig: ApplicationConfig = {
     provideNgxMask({ dropSpecialCharacters: false }),
     provideTransloco({
       config: {
-        availableLangs: ['en', 'ru'],
-        defaultLang: 'en',
-        fallbackLang: 'en',
+        // The language list and the fallback live in `core/i18n/languages.ts`, so adding a
+        // language is one code in one array plus its dictionary file.
+        availableLangs: [...SUPPORTED_LANGUAGES],
+        defaultLang: FALLBACK_LANGUAGE,
+        fallbackLang: FALLBACK_LANGUAGE,
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
         missingHandler: { useFallbackTranslation: true, logMissingKey: !isDevMode() },

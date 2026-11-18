@@ -2,15 +2,21 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 
-export type LanguageCode = 'en' | 'ru';
-
-export const SUPPORTED_LANGUAGES: readonly LanguageCode[] = ['en', 'ru'] as const;
+import {
+  FALLBACK_LANGUAGE,
+  SUPPORTED_LANGUAGES,
+  isSupportedLanguage,
+  type LanguageCode,
+} from '../i18n/languages';
 
 const STORAGE_KEY = 'logisistance.lang';
 
 /**
  * Keeps the active UI language in sync between Transloco, the `<html lang>` attribute and
  * localStorage, mirroring how ThemeService handles the colour theme.
+ *
+ * The list of languages lives in `core/i18n/languages.ts`; this service only decides which one is
+ * active and falls back to `FALLBACK_LANGUAGE` for anything it does not ship.
  */
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
@@ -22,11 +28,11 @@ export class LanguageService {
 
   /** Called once at bootstrap so the first render already uses the right language. */
   initialize(): void {
-    this.use(this.readStored() ?? this.browserLanguage() ?? 'en');
+    this.use(this.readStored() ?? this.browserLanguage() ?? FALLBACK_LANGUAGE);
   }
 
   use(language: string): void {
-    const code = this.isSupported(language) ? language : 'en';
+    const code = isSupportedLanguage(language) ? language : FALLBACK_LANGUAGE;
 
     this.transloco.setActiveLang(code);
     this.document.documentElement.lang = code;
@@ -38,20 +44,16 @@ export class LanguageService {
     }
   }
 
-  private isSupported(language: string): language is LanguageCode {
-    return (SUPPORTED_LANGUAGES as readonly string[]).includes(language);
-  }
-
   private readStored(): LanguageCode | null {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored && this.isSupported(stored) ? stored : null;
+      return stored && isSupportedLanguage(stored) ? stored : null;
     } catch {
       return null;
     }
   }
 
-  /** First supported language among the browser preferences, e.g. `ru-RU` → `ru`. */
+  /** First supported language among the browser preferences, e.g. `ru-RU` -> `ru`. */
   private browserLanguage(): LanguageCode | null {
     if (typeof navigator === 'undefined') {
       return null;
@@ -59,10 +61,13 @@ export class LanguageService {
     const candidates = [navigator.language, ...(navigator.languages ?? [])];
     for (const candidate of candidates) {
       const base = candidate?.split('-')[0]?.toLowerCase();
-      if (base && this.isSupported(base)) {
+      if (base && isSupportedLanguage(base)) {
         return base;
       }
     }
     return null;
   }
 }
+
+/** Re-exported so callers that already import the service keep one import for the language list. */
+export { SUPPORTED_LANGUAGES };

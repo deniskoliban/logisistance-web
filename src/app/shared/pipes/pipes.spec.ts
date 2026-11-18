@@ -3,6 +3,7 @@ import { provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { firstValueFrom } from 'rxjs';
 
 import { BundledTranslocoLoader } from '../../core/i18n/transloco-json.loader';
+import { FALLBACK_LANGUAGE, SUPPORTED_LANGUAGES } from '../../core/i18n/languages';
 import { LocalizedNumberPipe } from './localized-number.pipe';
 import { PluralPipe } from './plural.pipe';
 
@@ -10,7 +11,10 @@ function configure(): void {
   TestBed.configureTestingModule({
     providers: [
       provideTransloco({
-        config: { availableLangs: ['en', 'ru'], defaultLang: 'en' },
+        config: {
+          availableLangs: [...SUPPORTED_LANGUAGES],
+          defaultLang: FALLBACK_LANGUAGE,
+        },
         loader: BundledTranslocoLoader,
       }),
     ],

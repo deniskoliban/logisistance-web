@@ -9,7 +9,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AuthService } from './core/auth/auth.service';
-import { LanguageService, SUPPORTED_LANGUAGES } from './core/services/language.service';
+import { SUPPORTED_LANGUAGES } from './core/i18n/languages';
+import { LanguageService } from './core/services/language.service';
 import { ThemeService } from './core/services/theme.service';
 
 @Component({

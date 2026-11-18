@@ -7,7 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { CountryCatalog } from '../../core/fleet/country-catalog.service';
-import { SUPPORTED_LANGUAGES } from '../../core/services/language.service';
+import { SUPPORTED_LANGUAGES } from '../../core/i18n/languages';
 import {
   countryName,
   countryNameMatchesAnyLocale,

@@ -2,20 +2,19 @@ import { Injectable } from '@angular/core';
 import { Translation, TranslocoLoader } from '@jsverse/transloco';
 import { Observable, of } from 'rxjs';
 
-import en from '../../i18n/en.json';
-import ru from '../../i18n/ru.json';
-
-const DICTIONARIES: Record<string, Translation> = { en, ru };
+import { DICTIONARIES } from '../../i18n';
+import { FALLBACK_LANGUAGE } from './languages';
 
 /**
- * Dictionaries are bundled rather than fetched: two locales of a few kilobytes each do not
- * justify an HTTP round trip, and it removes a flash of untranslated UI on first paint.
+ * Dictionaries are bundled rather than fetched: a few kilobytes per locale do not justify an HTTP
+ * round trip, and it removes a flash of untranslated UI on first paint.
  * When the app grows to many locales or large per-feature scopes, swap this for an HTTP loader
- * (`/i18n/{lang}.json`) plus Transloco scopes — the rest of the code stays the same.
+ * (`/i18n/{lang}.json`) plus Transloco scopes — everything else (the language list, the menu, the
+ * pipes) stays the same.
  */
 @Injectable({ providedIn: 'root' })
 export class BundledTranslocoLoader implements TranslocoLoader {
   getTranslation(lang: string): Observable<Translation> {
-    return of(DICTIONARIES[lang] ?? DICTIONARIES['en']);
+    return of(DICTIONARIES[lang] ?? DICTIONARIES[FALLBACK_LANGUAGE]);
   }
 }
