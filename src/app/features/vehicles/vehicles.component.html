@@ -46,21 +46,22 @@
                     [optionGroups]="modelGroups()"
                   />
                 </div>
-                <div class="grid-auto">
-                  <mat-form-field appearance="outline" floatLabel="always">
-                    <mat-label>{{ 'fields.modification' | transloco }}</mat-label>
-                    <input
-                      matInput
-                      type="text"
-                      [formField]="vehicleForm.modification"
-                      [placeholder]="'placeholders.modification' | transloco"
-                    />
-                    @let modificationError = vehicleForm.modification | formError;
-                    @if (modificationError) {
-                      <mat-error>{{ modificationError }}</mat-error>
-                    }
-                  </mat-form-field>
+                <mat-form-field appearance="outline" floatLabel="always" class="full-width">
+                  <mat-label>{{ 'fields.modification' | transloco }}</mat-label>
+                  <input
+                    matInput
+                    type="text"
+                    [formField]="vehicleForm.modification"
+                    [placeholder]="'placeholders.modification' | transloco"
+                  />
+                  <mat-hint>{{ 'hints.modification' | transloco }}</mat-hint>
+                  @let modificationError = vehicleForm.modification | formError;
+                  @if (modificationError) {
+                    <mat-error>{{ modificationError }}</mat-error>
+                  }
+                </mat-form-field>
 
+                <div class="grid-2">
                   <mat-form-field appearance="outline" floatLabel="always">
                     <mat-label>{{ 'fields.year' | transloco }}</mat-label>
                     <mat-select [formField]="vehicleForm.model_year">

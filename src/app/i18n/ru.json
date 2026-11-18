@@ -70,7 +70,8 @@
     "vin": "17 символов, без I, O и Q",
     "payloadFromDocuments": "В свидетельстве это F.1 − G",
     "tractorVolume": "У тягача объём считается вместе с прицепом",
-    "cargoShape": "Неправильная форма: колёсные арки или скошенная крыша уменьшают отсек"
+    "cargoShape": "Неправильная форма: колёсные арки или скошенная крыша уменьшают отсек",
+    "modification": "Кузов, кабина или мощность"
   },
   "placeholders": {
     "fullName": "Jan Kowalski",
@@ -87,7 +88,7 @@
     "cargoLength": "13.60",
     "cargoWidth": "2.40",
     "cargoHeight": "2.70",
-    "modification": "18.440, Maxi XL, Combi",
+    "modification": "18.440, 35S14, L2H2, Maxi…",
     "vin": "WMA06XZZ0LM123456"
   },
   "errors": {

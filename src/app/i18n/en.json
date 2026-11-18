@@ -70,7 +70,8 @@
     "vin": "17 characters, no I, O or Q",
     "payloadFromDocuments": "In the registration document this is F.1 − G",
     "tractorVolume": "On a tractor unit the volume belongs to the trailer",
-    "cargoShape": "Irregular: wheel arches or a sloped roof eat into the bay"
+    "cargoShape": "Irregular: wheel arches or a sloped roof eat into the bay",
+    "modification": "Body, cab or power"
   },
   "placeholders": {
     "fullName": "Jan Kowalski",
@@ -87,7 +88,7 @@
     "cargoLength": "13.60",
     "cargoWidth": "2.40",
     "cargoHeight": "2.70",
-    "modification": "18.440, Maxi XL, Combi",
+    "modification": "18.440, 35S14, L2H2, Maxi…",
     "vin": "WMA06XZZ0LM123456"
   },
   "errors": {
