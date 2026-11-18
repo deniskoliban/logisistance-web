@@ -7,8 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 import { CountryCatalog } from '../../core/fleet/country-catalog.service';
-import { SUPPORTED_LANGUAGES } from '../../core/i18n/languages';
-import { countryNameMatchesAnyLocale, filterCountries } from '../../core/utils/country.util';
+import { filterCountries } from '../../core/utils/country.util';
 import { AutoSelectExactDirective } from '../directives/auto-select-exact.directive';
 import { MatchableOption } from '../directives/autocomplete-match.util';
 import { FormErrorPipe } from '../pipes/form-error.pipe';
@@ -59,8 +58,13 @@ export class CountryFieldComponent {
   protected readonly filtered = computed(() => filterCountries(this.options(), this.value()));
 
   constructor() {
-    // Text → code: a typed-out name resolves to its ISO code for the parent form.
+    // Text → code: a typed-out English name (or an exact ISO code) resolves to its code.
     effect(() => {
+      const options = this.catalog.options();
+      if (options.length === 0) {
+        // Deciding on an empty list would clear a selection that is simply waiting for the fetch.
+        return;
+      }
       const text = this.value();
       const matched = this.catalog.codeFor(text);
       if (matched) {
@@ -70,25 +74,19 @@ export class CountryFieldComponent {
         return;
       }
 
-      // A label left over from the previous language is not free text: keep the selection.
-      const current = this.code();
-      if (current && countryNameMatchesAnyLocale(current, text, SUPPORTED_LANGUAGES)) {
-        return;
-      }
       if (this.code() !== null) {
         this.code.set(null);
       }
     });
 
-    // Code → text: a code set from outside (or a language switch) shows the localised name.
+    // Code → text: a code set from outside shows its name once the country list has loaded.
     effect(() => {
-      this.transloco.activeLang();
       const code = this.code();
       if (!code) {
         return;
       }
-      // The catalog owns the naming rule (dictionaries first, `Intl` as the fallback), so the field
-      // and the rest of the app can never disagree about what a country is called.
+      // The catalog owns the naming rule (the API's English list), so the field and the rest of the
+      // app can never disagree about what a country is called.
       const name = this.catalog.nameFor(code);
       if (name && name !== this.value()) {
         this.field()().value.set(name);

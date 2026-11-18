@@ -44,9 +44,7 @@ export class AuthService {
   }
 
   refreshProfile(): Observable<User> {
-    return this.http
-      .get<User>(`${API_BASE}/users/me`)
-      .pipe(tap((user) => this.patchUser(user)));
+    return this.http.get<User>(`${API_BASE}/users/me`).pipe(tap((user) => this.patchUser(user)));
   }
 
   updateProfile(payload: ProfileUpdate): Observable<User> {

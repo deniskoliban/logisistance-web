@@ -1,30 +1,48 @@
-import { countryLabel } from './country.util';
-import type { TranslateFn } from './country.util';
+import { CountryOption } from '../models';
+import { countryCodeFor, filterCountries, sortedCountryOptions } from './country.util';
 
-/** A dictionary with only the keys a test needs; a missing key comes back as the key itself. */
-function dictionary(entries: Record<string, string>): TranslateFn {
-  return (key) => entries[key] ?? key;
-}
+const OPTIONS: CountryOption[] = [
+  { code: 'PL', name: 'Poland' },
+  { code: 'DE', name: 'Germany' },
+  { code: 'CZ', name: 'Czechia' },
+];
 
-describe('countryLabel', () => {
-  it('reads the name from the dictionary, not from Intl', () => {
-    const t = dictionary({ 'countries.PL': 'Польша' });
+describe('sortedCountryOptions', () => {
+  it('sorts alphabetically in one order for every language, without touching the input', () => {
+    const sorted = sortedCountryOptions(OPTIONS);
 
-    expect(countryLabel('PL', t, 'ru')).toBe('Польша');
-    // The dictionary wins even when the UI language and the Intl locale would disagree.
-    expect(countryLabel('PL', t, 'en')).toBe('Польша');
+    expect(sorted.map((option) => option.name)).toEqual(['Czechia', 'Germany', 'Poland']);
+    expect(OPTIONS.map((option) => option.name)).toEqual(['Poland', 'Germany', 'Czechia']);
+  });
+});
+
+describe('filterCountries', () => {
+  it('matches on the name, case-insensitively', () => {
+    expect(filterCountries(OPTIONS, 'ger').map((o) => o.code)).toEqual(['DE']);
+    expect(filterCountries(OPTIONS, 'GERMANY').map((o) => o.code)).toEqual(['DE']);
   });
 
-  it('falls back to Intl for a country the dictionaries do not carry yet', () => {
-    const t = dictionary({});
-
-    expect(countryLabel('US', t, 'en')).toBe('United States');
-    expect(countryLabel('US', t, 'ru')).toBe('Соединенные Штаты');
+  it('matches the ISO code exactly, so a driver can type "cz"', () => {
+    expect(filterCountries(OPTIONS, 'cz').map((o) => o.code)).toEqual(['CZ']);
   });
 
-  it('never shows a raw translation key', () => {
-    const t = dictionary({});
+  it('returns everything for an empty query', () => {
+    expect(filterCountries(OPTIONS, '   ')).toHaveLength(3);
+  });
+});
 
-    expect(countryLabel('PL', t, 'ru')).not.toContain('countries.');
+describe('countryCodeFor', () => {
+  it('maps a typed name back to the ISO code the API stores', () => {
+    expect(countryCodeFor(OPTIONS, ' Poland ')).toBe('PL');
+  });
+
+  it('accepts an exact ISO code, so a field seeded with a code resolves once the list arrives', () => {
+    expect(countryCodeFor(OPTIONS, 'pl')).toBe('PL');
+    expect(countryCodeFor(OPTIONS, ' CZ ')).toBe('CZ');
+  });
+
+  it('returns null for free text, which the country field treats as "nothing selected"', () => {
+    expect(countryCodeFor(OPTIONS, 'Polska')).toBeNull();
+    expect(countryCodeFor(OPTIONS, '')).toBeNull();
   });
 });

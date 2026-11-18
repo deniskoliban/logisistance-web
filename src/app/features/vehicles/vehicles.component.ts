@@ -39,7 +39,7 @@ import {
   VehicleType,
 } from '../../core/models';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
-import { countryLabel } from '../../core/utils/country.util';
+import { sortedCountryOptions } from '../../core/utils/country.util';
 import { latinText } from '../../core/utils/latin.util';
 import {
   ConfirmDialogComponent,
@@ -193,19 +193,8 @@ export class VehiclesComponent implements OnInit {
     return this.makes().find((entry) => entry.code === make)?.models ?? [];
   });
 
-  protected readonly countryOptions = computed(() => {
-    const language = this.transloco.activeLang();
-    return this.countries()
-      .map((country) => ({
-        code: country.code,
-        name: countryLabel(
-          country.code,
-          (key, params) => this.transloco.translate(key, params),
-          language,
-        ),
-      }))
-      .sort((left, right) => left.name.localeCompare(right.name, language));
-  });
+  /** Countries come from the API in English and are not translated (`DECISIONS.md` D15). */
+  protected readonly countryOptions = computed(() => sortedCountryOptions(this.countries()));
 
   protected readonly selectedMake = computed(
     () => this.makes().find((make) => make.code === this.model().make) ?? null,

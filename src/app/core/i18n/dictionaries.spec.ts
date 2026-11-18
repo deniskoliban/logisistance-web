@@ -103,30 +103,6 @@ describe('translation dictionaries', () => {
     expect(empties).toEqual([]);
   });
 
-  it('name every country the API can serve, keyed by ISO code', () => {
-    // Country names live in the dictionaries so they translate like every other string; `Intl` is
-    // only the fallback (`countryLabel`). A missing key would silently show an English name in a
-    // Russian UI — the trap in `GOTCHAS.md` G11 — so completeness is asserted here.
-    for (const [code, dictionary] of SHIPPED) {
-      const entries = Object.entries(
-        (dictionary['countries'] as Record<string, string> | undefined) ?? {},
-      );
-      const badKeys = entries.map(([key]) => key).filter((key) => !/^[A-Z]{2}$/.test(key));
-
-      expect({ language: code, count: entries.length >= 31, badKeys }).toEqual({
-        language: code,
-        count: true,
-        badKeys: [],
-      });
-      expect({
-        language: code,
-        sample: ['PL', 'DE', 'FR', 'NO', 'CH'].every(
-          (c) => c in (dictionary['countries'] as object),
-        ),
-      }).toEqual({ language: code, sample: true });
-    }
-  });
-
   it('keep every untranslated key identical across languages', () => {
     // Samples of stored data (a name, a city, a plate, a number) have one format everywhere, so a
     // translated value means someone misunderstood the key (`untranslated.keys.ts`, DECISIONS D11).

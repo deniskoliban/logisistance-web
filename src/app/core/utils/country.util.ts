@@ -1,51 +1,26 @@
 import { CountryOption } from '../models';
 
-/** Transloco-style translate function: returns the key itself when the dictionary has no entry. */
-export type TranslateFn = (key: string, params?: Record<string, unknown>) => string;
-
 /**
- * Localised country name.
+ * Country names are **not** translated.
  *
- * The dictionaries are authoritative (`countries.<ISO>`) so a country reads like every other string
- * in the UI; `Intl.DisplayNames` is only a fallback for a code the dictionaries do not carry (a new
- * country added on the API before the dictionaries catch up).
+ * A country is a proper noun and the API already publishes one canonical English list
+ * (`app/core/reference.py`); a carrier reads "Germany" or "Netherlands" in any UI language, the same way
+ * he reads "MAN" or "AB 1234 CD". One list serves every language the app will ever ship, with no
+ * per-language name drift ("Чехия" vs "Чешская Республика") and no dependency on `Intl.DisplayNames`,
+ * which silently answers in the runtime's default locale when regional data is missing
+ * (`GOTCHAS.md` G11, `DECISIONS.md` D15).
  *
- * `Intl` alone is not enough: a runtime without regional data silently answers with the default
- * locale — an English name in a Russian UI, with no error — which is exactly the trap in
- * `GOTCHAS.md` G11. That is why the names live in the dictionaries and a spec keeps them complete.
+ * What gets stored is the ISO code, so this is a display decision only.
  */
-export function countryLabel(code: string, t: TranslateFn, locale: string): string {
-  const key = `countries.${code}`;
-  const translated = t(key);
-  if (translated && translated !== key) {
-    return translated;
-  }
-  return countryName(code, locale) ?? code;
-}
 
-/** `Intl.DisplayNames` lookup; the fallback path of `countryLabel`. */
-export function countryName(code: string, locale: string): string | null {
-  try {
-    return new Intl.DisplayNames([locale], { type: 'region' }).of(code) ?? null;
-  } catch {
-    return null; // very old runtime without DisplayNames
-  }
-}
-
-/** Options for the country autocomplete: localised names, sorted for the active language. */
-export function localizedCountryOptions(
-  codes: string[],
-  t: TranslateFn,
-  locale: string,
-): CountryOption[] {
-  return codes
-    .map((code) => ({ code, name: countryLabel(code, t, locale) }))
-    .sort((a, b) => a.name.localeCompare(b.name, locale));
+/** Options sorted the one way every language can read: alphabetically, with English collation. */
+export function sortedCountryOptions(options: readonly CountryOption[]): CountryOption[] {
+  return [...options].sort((left, right) => left.name.localeCompare(right.name, 'en'));
 }
 
 /**
- * Filter for the country autocomplete: matches on name substring or exact code,
- * so both "Pol" and "pl" find Poland (and "Пол" finds Польша).
+ * Filter for the country autocomplete: matches on the English name substring or the exact ISO code,
+ * so "Ger", "germany" and "de" all find Germany.
  */
 export function filterCountries(options: CountryOption[], query: string): CountryOption[] {
   const needle = query.trim().toLowerCase();
@@ -57,23 +32,18 @@ export function filterCountries(options: CountryOption[], query: string): Countr
   );
 }
 
-/** The autocomplete shows names, the API stores ISO codes. */
-export function countryCodeFor(options: CountryOption[], name: string): string | null {
-  const needle = name.trim().toLowerCase();
-  return options.find((option) => option.name.toLowerCase() === needle)?.code ?? null;
-}
-
 /**
- * Whether `text` is the name of `code` in any of `locales`.
- *
- * Needed when the UI language changes: the input still holds the previous language's label for a
- * moment, and that must not be mistaken for free text (which would clear the selected country).
+ * The autocomplete shows names, the API stores ISO codes. An exact ISO code is accepted as well, so a
+ * field seeded with a code before the country list has loaded resolves cleanly once the list arrives.
  */
-export function countryNameMatchesAnyLocale(
-  code: string,
-  text: string,
-  locales: readonly string[],
-): boolean {
+export function countryCodeFor(options: CountryOption[], text: string): string | null {
   const needle = text.trim().toLowerCase();
-  return locales.some((locale) => (countryName(code, locale) ?? '').toLowerCase() === needle);
+  if (!needle) {
+    return null;
+  }
+  const byName = options.find((option) => option.name.toLowerCase() === needle);
+  if (byName) {
+    return byName.code;
+  }
+  return options.find((option) => option.code.toLowerCase() === needle)?.code ?? null;
 }
