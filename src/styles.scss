@@ -4,6 +4,13 @@ html {
   color-scheme: light dark;
   height: 100%;
 
+  /* A placeholder means "empty". Material paints it in `on-surface-variant`, which in the dark theme is
+     almost as bright as real input text — a just-reset field looked filled. `outline` is the muted
+     neutral in both themes, so the difference never depends on the palette. */
+  --mat-form-field-outlined-input-text-placeholder-color: var(--mat-sys-outline);
+  --mat-form-field-filled-input-text-placeholder-color: var(--mat-sys-outline);
+  --mat-form-field-disabled-input-text-placeholder-color: var(--mat-sys-outline);
+
   @include mat.theme(
     (
       color: (
