@@ -1,9 +1,8 @@
-import { Component, OnInit, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import {
   FormField,
   FormRoot,
   TreeValidationResult,
-  disabled,
   form,
   max,
   maxLength,
@@ -31,7 +30,6 @@ import {
   BodyType,
   CargoShape,
   CatalogMake,
-  CatalogModel,
   CountryOption,
   OptionItem,
   Vehicle,
@@ -39,6 +37,8 @@ import {
   VehicleType,
 } from '../../core/models';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
+import { MatchableOption, OptionGroup } from '../../shared/directives/autocomplete-match.util';
+import { OptionFieldComponent } from '../../shared/option-field/option-field.component';
 import { sortedCountryOptions } from '../../core/utils/country.util';
 import { latinText } from '../../core/utils/latin.util';
 import {
@@ -112,6 +112,11 @@ function outOfRange(
   return null;
 }
 
+/** Catalogue entry as an autocomplete option: the driver types and reads the name, never the code. */
+function toMatchable(entry: { name: string }): MatchableOption {
+  return { value: entry.name, viewValue: entry.name };
+}
+
 function vinIssue(value: string): { kind: string } | null {
   const vin = value.trim().toUpperCase();
   if (!vin) {
@@ -147,6 +152,7 @@ function vinIssue(value: string): { kind: string } | null {
     TranslocoPipe,
     FormErrorPipe,
     LocalizedNumberPipe,
+    OptionFieldComponent,
     PluralPipe,
   ],
   templateUrl: './vehicles.component.html',
@@ -188,25 +194,37 @@ export class VehiclesComponent implements OnInit {
   protected readonly coreMakes = computed(() => this.makes().filter((make) => make.core));
   protected readonly otherMakes = computed(() => this.makes().filter((make) => !make.core));
 
-  protected readonly models = computed<CatalogModel[]>(() => {
-    const make = this.model().make;
-    return this.makes().find((entry) => entry.code === make)?.models ?? [];
-  });
-
   /** Countries come from the API in English and are not translated (`DECISIONS.md` D15). */
   protected readonly countryOptions = computed(() => sortedCountryOptions(this.countries()));
 
+  /**
+   * The form holds the *names* the driver reads ("MAN", "TGX"); the catalogue code is resolved from
+   * them, exactly like the country field maps a name back to an ISO code.
+   */
   protected readonly selectedMake = computed(
-    () => this.makes().find((make) => make.code === this.model().make) ?? null,
+    () => this.makes().find((make) => make.name === this.model().make) ?? null,
   );
+  protected readonly makeCode = computed(() => this.selectedMake()?.code ?? null);
   protected readonly selectedModel = computed(
-    () => this.models().find((model) => model.code === this.model().model) ?? null,
+    () => this.selectedMake()?.models.find((model) => model.name === this.model().model) ?? null,
   );
+  protected readonly modelCode = computed(() => this.selectedModel()?.code ?? null);
+
+  /** Searchable make picker: curated makes first, the rest alphabetically, as labelled blocks. */
+  protected readonly makeGroups = computed<OptionGroup[]>(() => [
+    { labelKey: 'vehicles.popularMakes', options: this.coreMakes().map(toMatchable) },
+    { labelKey: 'vehicles.allMakes', options: this.otherMakes().map(toMatchable) },
+  ]);
+
+  /** Models of the chosen make; nothing to search until a make is resolved. */
+  protected readonly modelGroups = computed<OptionGroup[]>(() => [
+    { labelKey: null, options: (this.selectedMake()?.models ?? []).map(toMatchable) },
+  ]);
 
   /** What the card will read, e.g. `MAN TGX 18.440, 2021` — the API computes the same string. */
   protected readonly previewName = computed(() => {
     const value = this.model();
-    const parts = [this.selectedMake()?.name, this.selectedModel()?.name].filter(Boolean);
+    const parts = [value.make, value.model].filter((part) => part.trim());
     if (value.modification.trim()) {
       parts.push(value.modification.trim());
     }
@@ -235,9 +253,14 @@ export class VehiclesComponent implements OnInit {
     (path) => {
       required(path.make);
       required(path.model);
-      // Models belong to a make, so the model picker waits until a make is chosen. `disabled` is a
-      // schema concern: binding `[disabled]` next to `[formField]` is rejected (NG8022).
-      disabled(path.model, () => !this.model().make);
+      // The fields hold text, so a make the catalogue does not know must not pass. Only a complete
+      // name resolves: a half-typed "Ma" stays free text and fails here, which is the point.
+      validate(path.make, ({ value }) =>
+        this.makeCodeFor(value()) ? null : { kind: 'makeUnknown' },
+      );
+      validate(path.model, ({ value }) =>
+        this.modelCodeFor(value()) ? null : { kind: 'modelUnknown' },
+      );
       required(path.registration_country);
 
       required(path.plate);
@@ -302,8 +325,9 @@ export class VehiclesComponent implements OnInit {
     this.serverMessage.set(null);
     this.editingId.set(vehicle.id);
     this.model.set({
-      make: vehicle.make,
-      model: vehicle.model,
+      // The API hands back the names behind the codes, so editing needs no catalogue lookup.
+      make: vehicle.make_name,
+      model: vehicle.model_name,
       modification: vehicle.modification ?? '',
       model_year: vehicle.model_year,
       vin: vehicle.vin ?? '',
@@ -326,9 +350,38 @@ export class VehiclesComponent implements OnInit {
     this.resetForm();
   }
 
-  /** Changing the make invalidates the model: models belong to a make. */
-  protected onMakeChange(make: string): void {
-    this.model.update((value) => ({ ...value, make, model: '' }));
+  /** Previous make text, so the model is cleared on a make *change* and never while typing a model. */
+  private lastMake: string | undefined;
+
+  constructor() {
+    // Models belong to a make: changing the make drops a model the new make does not offer. Comparing
+    // with the previous make (instead of validating on every change) is what keeps a half-typed model
+    // name from being wiped on each keystroke.
+    effect(() => {
+      const make = this.model().make;
+      const changed = this.lastMake !== undefined && this.lastMake !== make;
+      this.lastMake = make;
+      if (!changed) {
+        return;
+      }
+      const modelName = this.model().model;
+      if (!modelName.trim()) {
+        return;
+      }
+      const makeEntry = this.selectedMake();
+      if (!makeEntry || !makeEntry.models.some((model) => model.name === modelName)) {
+        this.model.update((value) => ({ ...value, model: '' }));
+      }
+    });
+  }
+
+  private makeCodeFor(name: string): string | null {
+    return this.makes().find((make) => make.name === name.trim())?.code ?? null;
+  }
+
+  private modelCodeFor(name: string): string | null {
+    const make = this.makes().find((entry) => entry.name === this.model().make.trim());
+    return make?.models.find((model) => model.name === name.trim())?.code ?? null;
   }
 
   /** A failed submit on step 1 must not leave the person staring at step 2. */
@@ -399,8 +452,9 @@ export class VehiclesComponent implements OnInit {
   private buildPayload(): VehicleInput {
     const value = this.model();
     return {
-      make: value.make,
-      model: value.model,
+      // The field text is what the driver reads; the API stores catalogue codes.
+      make: this.makeCode() ?? '',
+      model: this.modelCode() ?? '',
       modification: value.modification.trim() || null,
       model_year: Number(value.model_year),
       vin: value.vin.trim().toUpperCase() || null,

@@ -10,6 +10,37 @@ export function normalizeOptionText(text: string): string {
 }
 
 /**
+ * A block of options shown as one `mat-optgroup`; `labelKey` is a dictionary key, or null for a group
+ * without a header (the usual case: one flat list).
+ */
+export interface OptionGroup {
+  labelKey: string | null;
+  options: readonly MatchableOption[];
+}
+
+/**
+ * Groups filtered by what the user has typed so far: a group survives only while it still has
+ * matches, and an empty query keeps everything.
+ *
+ * Filtering happens on the option data rather than on rendered `mat-option`s because the panel
+ * renders nothing until it opens (`GOTCHAS.md` G14).
+ */
+export function filterOptionGroups(groups: readonly OptionGroup[], typed: string): OptionGroup[] {
+  const needle = normalizeOptionText(typed);
+  if (!needle) {
+    return groups.map((group) => ({ labelKey: group.labelKey, options: [...group.options] }));
+  }
+  return groups
+    .map((group) => ({
+      labelKey: group.labelKey,
+      options: group.options.filter((option) =>
+        normalizeOptionText(option.viewValue).includes(needle),
+      ),
+    }))
+    .filter((group) => group.options.length > 0);
+}
+
+/**
  * The option whose label the user typed out in full, or null.
  *
  * Only a complete match counts — a half-typed "Pol" must stay free text so the user keeps

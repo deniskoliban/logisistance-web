@@ -1,0 +1,36 @@
+<mat-form-field appearance="outline" floatLabel="always">
+  <mat-label>{{ labelKey() | transloco }}</mat-label>
+  <input
+    matInput
+    type="text"
+    [formField]="field()"
+    [matAutocomplete]="auto"
+    [autoSelectExact]="allOptions()"
+    [placeholder]="placeholderKey() ? (placeholderKey()! | transloco) : ''"
+    autocomplete="off"
+    spellcheck="false"
+  />
+
+  <mat-autocomplete #auto="matAutocomplete">
+    @for (group of groups(); track $index) {
+      @if (group.labelKey) {
+        <mat-optgroup [label]="group.labelKey | transloco">
+          @for (option of group.options; track option.value) {
+            <mat-option [value]="option.value">{{ option.viewValue }}</mat-option>
+          }
+        </mat-optgroup>
+      } @else {
+        @for (option of group.options; track option.value) {
+          <mat-option [value]="option.value">{{ option.viewValue }}</mat-option>
+        }
+      }
+    } @empty {
+      <mat-option disabled>{{ 'common.noMatch' | transloco }}</mat-option>
+    }
+  </mat-autocomplete>
+
+  @let error = field() | formError;
+  @if (error) {
+    <mat-error>{{ error }}</mat-error>
+  }
+</mat-form-field>

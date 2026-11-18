@@ -32,45 +32,20 @@
             <mat-step [label]="'vehicles.stepIdentity' | transloco">
               <div class="step-body">
                 <div class="grid-2">
-                  <mat-form-field appearance="outline" floatLabel="always">
-                    <mat-label>{{ 'fields.make' | transloco }}</mat-label>
-                    <mat-select
-                      [formField]="vehicleForm.make"
-                      (selectionChange)="onMakeChange($event.value)"
-                    >
-                      <mat-optgroup [label]="'vehicles.popularMakes' | transloco">
-                        @for (make of coreMakes(); track make.code) {
-                          <mat-option [value]="make.code">{{ make.name }}</mat-option>
-                        }
-                      </mat-optgroup>
-                      <mat-optgroup [label]="'vehicles.allMakes' | transloco">
-                        @for (make of otherMakes(); track make.code) {
-                          <mat-option [value]="make.code">{{ make.name }}</mat-option>
-                        }
-                      </mat-optgroup>
-                    </mat-select>
-                    @let makeError = vehicleForm.make | formError;
-                    @if (makeError) {
-                      <mat-error>{{ makeError }}</mat-error>
-                    }
-                  </mat-form-field>
+                  <app-option-field
+                    [field]="vehicleForm.make"
+                    labelKey="fields.make"
+                    placeholderKey="placeholders.make"
+                    [optionGroups]="makeGroups()"
+                  />
 
-                  <mat-form-field appearance="outline" floatLabel="always">
-                    <mat-label>{{ 'fields.model' | transloco }}</mat-label>
-                    <mat-select [formField]="vehicleForm.model">
-                      @for (vehicleModel of models(); track vehicleModel.code) {
-                        <mat-option [value]="vehicleModel.code">
-                          {{ vehicleModel.name }}
-                        </mat-option>
-                      }
-                    </mat-select>
-                    @let modelError = vehicleForm.model | formError;
-                    @if (modelError) {
-                      <mat-error>{{ modelError }}</mat-error>
-                    }
-                  </mat-form-field>
+                  <app-option-field
+                    [field]="vehicleForm.model"
+                    labelKey="fields.model"
+                    placeholderKey="placeholders.model"
+                    [optionGroups]="modelGroups()"
+                  />
                 </div>
-
                 <div class="grid-auto">
                   <mat-form-field appearance="outline" floatLabel="always">
                     <mat-label>{{ 'fields.modification' | transloco }}</mat-label>

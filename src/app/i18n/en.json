@@ -87,6 +87,8 @@
     "cargoLength": "13.60",
     "cargoWidth": "2.40",
     "cargoHeight": "2.70",
+    "make": "MAN",
+    "model": "TGX",
     "modification": "18.440",
     "vin": "WMA06XZZ0LM123456"
   },
@@ -103,6 +105,8 @@
     "ageTooOld": "Drivers must be at most {{max}}",
     "countryUnknown": "Pick a country from the list",
     "notLatin": "Latin characters only",
+    "makeUnknown": "Pick a make from the list",
+    "modelUnknown": "Pick a model of that make",
     "vinLength": "A VIN has exactly 17 characters",
     "vinFormat": "VIN may contain letters and digits, but not I, O or Q",
     "signInFailed": "Could not sign in.",
@@ -190,6 +194,7 @@
     }
   },
   "common": {
+    "noMatch": "Nothing matches",
     "noCountryMatch": "No country matches",
     "notProvided": "—"
   }

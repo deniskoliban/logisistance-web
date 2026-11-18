@@ -53,6 +53,8 @@ export function errorOf(field: FieldTree<unknown>, t: TranslateFn): string | nul
     case 'notLatin':
     case 'vinLength':
     case 'vinFormat':
+    case 'makeUnknown':
+    case 'modelUnknown':
       return t(`errors.${error.kind}`);
     default:
       // Anything we do not know about (e.g. a server-side error) keeps its own message.

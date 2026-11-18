@@ -87,6 +87,8 @@
     "cargoLength": "13.60",
     "cargoWidth": "2.40",
     "cargoHeight": "2.70",
+    "make": "MAN",
+    "model": "TGX",
     "modification": "18.440",
     "vin": "WMA06XZZ0LM123456"
   },
@@ -103,6 +105,8 @@
     "ageTooOld": "Водитель должен быть не старше {{max}} лет",
     "countryUnknown": "Выберите страну из списка",
     "notLatin": "Только латинские символы",
+    "makeUnknown": "Выберите марку из списка",
+    "modelUnknown": "Выберите модель этой марки",
     "vinLength": "В VIN ровно 17 символов",
     "vinFormat": "В VIN только буквы и цифры, без I, O и Q",
     "signInFailed": "Не удалось войти.",
@@ -194,6 +198,7 @@
     }
   },
   "common": {
+    "noMatch": "Ничего не найдено",
     "noCountryMatch": "Стран не найдено",
     "notProvided": "—"
   }

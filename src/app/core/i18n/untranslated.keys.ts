@@ -14,6 +14,8 @@ export const UNTRANSLATED_KEYS = [
   'placeholders.email',
   'placeholders.city',
   'placeholders.plate',
+  'placeholders.make',
+  'placeholders.model',
   'placeholders.modification',
   'placeholders.vin',
   'placeholders.payload',
