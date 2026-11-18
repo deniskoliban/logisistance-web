@@ -27,11 +27,8 @@ describe('formatDate', () => {
 });
 
 describe('dateInputMask', () => {
-  it('follows the date adapter format of each language', () => {
-    expect(dateInputMask('ru')).toBe('00.00.0000');
-    expect(dateInputMask('ru-RU')).toBe('00.00.0000');
-    expect(dateInputMask('en')).toBe('00/00/0000');
-    expect(dateInputMask('en-US')).toBe('00/00/0000');
+  it('is one European order for every language', () => {
+    expect(dateInputMask()).toBe('00.00.0000');
   });
 });
 

@@ -4,12 +4,18 @@ import { NativeDateAdapter } from '@angular/material/core';
 type DatePart = 'day' | 'month' | 'year';
 
 /**
- * Native adapter with a locale-aware `parse`.
+ * Date adapter with one universal European order: `dd.mm.yyyy`, in every language.
  *
- * Material's own implementation is `new Date(Date.parse(value))`, which ignores the locale: typed
- * `12.05.1990` is read as US `mm.dd.yyyy` and silently becomes 5 December, while `format()` renders
- * it back in the locale order. That mismatch made manual entry in Russian wrong (or, for `15.01.1996`,
- * simply invalid). Here the field text is parsed in the order the locale prints it.
+ * Two Material behaviours had to be replaced:
+ *
+ * - `parse` is `new Date(Date.parse(value))` in the native adapter, which reads typed `12.05.1990`
+ *   as US `mm.dd.yyyy` (5 December) and rejects `15.01.1996` outright.
+ * - `format` follows the locale, so the field text changed order with the UI language while the mask
+ *   and the parser kept one order — a date picked from the calendar came back as `1/20/1996`.
+ *
+ * The order is fixed for now so that a saved date reads the same everywhere (`DECISIONS.md` D12);
+ * the locale still decides month and weekday names, so the calendar header stays localised. Switching
+ * to per-locale reading later means changing `partOrder()` and `format()` here, plus `dateInputMask`.
  */
 @Injectable()
 export class LocalizedDateAdapter extends NativeDateAdapter {
@@ -34,9 +40,9 @@ export class LocalizedDateAdapter extends NativeDateAdapter {
       return null;
     }
 
-    // A leading 4-digit number is an ISO-ish `yyyy-mm-dd`, everything else follows the locale order.
+    // A leading 4-digit number is an ISO `yyyy-mm-dd`, everything else is day first.
     const order: readonly DatePart[] =
-      numbers[0] > 31 ? ['year', 'month', 'day'] : this.partOrder();
+      numbers[0] > 31 ? ['year', 'month', 'day'] : ['day', 'month', 'year'];
     const [first, second, third] = numbers;
     const values: Record<DatePart, number> = { day: 0, month: 0, year: 0 };
 
@@ -55,17 +61,22 @@ export class LocalizedDateAdapter extends NativeDateAdapter {
     return isReal ? date : null;
   }
 
-  /** Order in which this locale prints day, month and year, e.g. `['day','month','year']` for ru. */
-  private partOrder(): [DatePart, DatePart, DatePart] {
-    const parts = new Intl.DateTimeFormat(this.locale, {
-      year: 'numeric',
-      month: 'numeric',
-      day: 'numeric',
-    })
-      .formatToParts(new Date(2001, 10, 22))
-      .map((part) => part.type)
-      .filter((type): type is DatePart => type === 'day' || type === 'month' || type === 'year');
+  /**
+   * The datepicker asks for a purely numeric format for the field's own text; that one is ours.
+   * Everything else (month and weekday names in the calendar, the toggle's label) keeps Material's
+   * localised wording.
+   */
+  override format(date: Date, displayFormat: Intl.DateTimeFormatOptions): string {
+    const isNumericFieldFormat =
+      displayFormat.year === 'numeric' &&
+      displayFormat.month === 'numeric' &&
+      displayFormat.day === 'numeric';
 
-    return parts.length === 3 ? (parts as [DatePart, DatePart, DatePart]) : ['day', 'month', 'year'];
+    if (!isNumericFieldFormat) {
+      return super.format(date, displayFormat);
+    }
+
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return `${pad(this.getDate(date))}.${pad(this.getMonth(date) + 1)}.${this.getYear(date)}`;
   }
 }

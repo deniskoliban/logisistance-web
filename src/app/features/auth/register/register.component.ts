@@ -29,6 +29,7 @@ import { validateDriverAge } from '../../../core/utils/age.util';
 import { apiErrorMessage } from '../../../core/utils/api-error.util';
 import { dateInputMask, toIsoDate } from '../../../core/utils/date.util';
 import { errorOf } from '../../../core/utils/form-error.util';
+import { latinText } from '../../../core/utils/latin.util';
 import { CountryFieldComponent } from '../../../shared/country-field/country-field.component';
 import { FormErrorPipe } from '../../../shared/pipes/form-error.pipe';
 
@@ -71,8 +72,8 @@ export class RegisterComponent {
 
   protected readonly residenceCode = signal<string | null>(null);
 
-  /** Manual-entry mask follows the date adapter's locale, so typed text stays parseable. */
-  protected readonly dateMask = computed(() => dateInputMask(this.transloco.activeLang()));
+  /** Manual-entry mask: one European order for every language (see `dateInputMask`). */
+  protected readonly dateMask = computed(() => dateInputMask());
 
   /**
    * Where the empty calendar opens. `startAt` must follow the current value, otherwise Material
@@ -103,6 +104,7 @@ export class RegisterComponent {
       required(path.full_name);
       minLength(path.full_name, 2);
       maxLength(path.full_name, 120);
+      validate(path.full_name, ({ value }) => latinText(value()));
 
       required(path.date_of_birth);
       validate(path.date_of_birth, ({ value }) => {
@@ -126,6 +128,7 @@ export class RegisterComponent {
       required(path.city);
       minLength(path.city, 2);
       maxLength(path.city, 120);
+      validate(path.city, ({ value }) => latinText(value()));
     },
     {
       submission: {

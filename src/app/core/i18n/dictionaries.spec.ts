@@ -4,6 +4,7 @@ import { provideTransloco } from '@jsverse/transloco';
 import en from '../../i18n/en.json';
 import ru from '../../i18n/ru.json';
 import { BundledTranslocoLoader } from './transloco-json.loader';
+import { UNTRANSLATED_KEYS } from './untranslated.keys';
 
 /** CLDR plural categories; Russian legitimately has more of them than English. */
 const PLURAL_CATEGORIES = new Set(['zero', 'one', 'two', 'few', 'many', 'other']);
@@ -56,6 +57,23 @@ describe('translation dictionaries', () => {
     );
 
     expect(empties).toEqual([]);
+  });
+
+  it('keep every untranslated key identical across languages', () => {
+    // Samples of stored data (a name, a city, a plate, a number) have one format everywhere, so a
+    // translated value means someone misunderstood the key (`untranslated.keys.ts`, DECISIONS D11).
+    const english = flattenToObject(en);
+    const russian = flattenToObject(ru);
+
+    const missing = UNTRANSLATED_KEYS.filter((key) => !(key in english) || !(key in russian));
+    expect(missing).toEqual([]);
+
+    const diverged = UNTRANSLATED_KEYS.filter((key) => english[key] !== russian[key]);
+    expect(diverged).toEqual([]);
+  });
+
+  it('list only placeholders as untranslated, so the list cannot quietly grow into UI text', () => {
+    expect(UNTRANSLATED_KEYS.filter((key) => !key.startsWith('placeholders.'))).toEqual([]);
   });
 });
 

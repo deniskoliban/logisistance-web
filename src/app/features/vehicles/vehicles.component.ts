@@ -9,6 +9,7 @@ import {
   min,
   minLength,
   required,
+  validate,
 } from '@angular/forms/signals';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -26,6 +27,7 @@ import { firstValueFrom, forkJoin } from 'rxjs';
 import { FleetService } from '../../core/fleet/fleet.service';
 import { BodyType, OptionItem, Vehicle, VehicleInput, VehicleType } from '../../core/models';
 import { apiErrorMessage } from '../../core/utils/api-error.util';
+import { latinText } from '../../core/utils/latin.util';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData,
@@ -108,10 +110,12 @@ export class VehiclesComponent implements OnInit {
     (path) => {
       required(path.label);
       maxLength(path.label, 80);
+      validate(path.label, ({ value }) => latinText(value()));
 
       required(path.plate);
       minLength(path.plate, 3);
       maxLength(path.plate, 20);
+      validate(path.plate, ({ value }) => latinText(value()));
 
       required(path.payload_kg);
       min(path.payload_kg, 1);

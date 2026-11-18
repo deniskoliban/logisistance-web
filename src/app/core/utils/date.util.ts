@@ -20,11 +20,14 @@ export function fromIsoDate(isoDate: string): Date | null {
 }
 
 /**
- * Mask for manual date entry, matching what the Material date adapter parses for that locale:
- * `dd.mm.yyyy` in Russian, `mm/dd/yyyy` in English. Separators are inserted while typing.
+ * Mask for manual date entry, matching what the Material date adapter parses.
+ *
+ * One universal European order (`dd.mm.yyyy`) for every language, so a date looks the same wherever
+ * it is read and typed — the locale still drives month and weekday names. Reading dates per locale
+ * is a deliberate later decision (`DECISIONS.md` D12). Separators are inserted while typing.
  */
-export function dateInputMask(locale: string): string {
-  return locale.startsWith('ru') ? '00.00.0000' : '00/00/0000';
+export function dateInputMask(): string {
+  return '00.00.0000';
 }
 
 /** Date formatting for display, following the active UI language. */

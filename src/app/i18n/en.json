@@ -62,9 +62,9 @@
     "dislocation": "Your country and city are the default starting point for load search."
   },
   "placeholders": {
-    "fullName": "John Smith",
-    "date": "MM/DD/YYYY",
-    "email": "you@example.com",
+    "fullName": "Ivan Petrov",
+    "date": "DD.MM.YYYY",
+    "email": "driver@example.com",
     "city": "Berlin",
     "vehicleName": "MAN TGX 18.440",
     "plate": "AB 1234 CD",
@@ -90,6 +90,7 @@
     "ageTooYoung": "Drivers must be at least {{min}}",
     "ageTooOld": "Drivers must be at most {{max}}",
     "countryUnknown": "Pick a country from the list",
+    "notLatin": "Latin characters only — no Cyrillic",
     "signInFailed": "Could not sign in.",
     "registerFailed": "Could not create the account.",
     "countriesFailed": "Could not load the country list.",
